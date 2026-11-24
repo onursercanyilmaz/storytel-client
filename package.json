@@ -16,8 +16,8 @@
   "main": "electron/main.js",
   "scripts": {
     "dev": "next dev -H 127.0.0.1 -p 3000",
-    "build": "next build",
-    "start": "next start -H 127.0.0.1 -p 3000",
+    "build": "next build && node scripts/copy-standalone-assets.js",
+    "start": "node scripts/start-server.js",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
