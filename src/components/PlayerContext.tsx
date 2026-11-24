@@ -66,6 +66,7 @@ const PlayerContext = createContext<PlayerContextValue | null>(null);
 
 const RATE_STORAGE_KEY = "st_studio_playback_rate";
 const VOL_STORAGE_KEY = "st_studio_volume";
+const LAST_PLAYED_STORAGE_KEY = "st_studio_last_played";
 
 export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -98,6 +99,63 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       if (savedRate >= 0.5 && savedRate <= 3) setPlaybackRateState(savedRate);
       const savedVol = parseFloat(localStorage.getItem(VOL_STORAGE_KEY) || "1");
       if (savedVol >= 0 && savedVol <= 1) setVolumeState(savedVol);
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  // Save active book & playback position to localStorage for persistence across reloads
+  useEffect(() => {
+    if (!currentBook) return;
+    try {
+      localStorage.setItem(
+        LAST_PLAYED_STORAGE_KEY,
+        JSON.stringify({
+          book: currentBook,
+          positionSec: currentTime,
+          duration,
+          updatedAt: Date.now(),
+        }),
+      );
+    } catch {}
+  }, [currentBook, currentTime, duration]);
+
+  // Restore last played book on app mount so refreshing the page preserves playback state
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(LAST_PLAYED_STORAGE_KEY);
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (!data?.book?.id) return;
+
+      const book: PlayingBook = data.book;
+      const initialSec = Math.max(0, Number(data.positionSec) || 0);
+
+      setCurrentBook(book);
+      if (book.durationMs > 0) {
+        setDuration(book.durationMs / 1000);
+      }
+      setCurrentTime(initialSec);
+      pendingSeekRef.current = initialSec;
+
+      const audio = audioRef.current;
+      if (audio) {
+        const query = book.abookId
+          ? `?abookId=${encodeURIComponent(book.abookId)}`
+          : "";
+        audio.src = `/api/stream/${encodeURIComponent(book.id)}${query}`;
+      }
+
+      // Pre-fetch chapters & bookmarks so chapters list is ready
+      fetch(`/api/books/${encodeURIComponent(book.id)}`)
+        .then((r) => (r.ok ? r.json() : null))
+        .then((detail) => {
+          if (!detail) return;
+          if (Array.isArray(detail.chapters)) setChapters(detail.chapters);
+          if (Array.isArray(detail.bookmarks)) setBookmarks(detail.bookmarks);
+          if (detail.durationMs > 0) setDuration(detail.durationMs / 1000);
+        })
+        .catch(() => {});
     } catch {
       // ignore
     }
@@ -490,6 +548,9 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
 
   const stopPlayer = useCallback(() => {
     void syncPositionNow();
+    try {
+      localStorage.removeItem(LAST_PLAYED_STORAGE_KEY);
+    } catch {}
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.src = "";

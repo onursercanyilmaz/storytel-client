@@ -158,6 +158,170 @@ export default function StorytelApp({ email, onLogout }: StorytelAppProps) {
     };
   }, [fetchBookshelf]);
 
+  // --- URL Routing & Hash State Persistence (English-compatible routes) ---
+  const isSyncingFromUrlRef = useRef(false);
+
+  // 1. Parse URL hash on mount and on 'hashchange'
+  const parseUrlState = useCallback(() => {
+    if (typeof window === "undefined") return;
+    const hash = window.location.hash.replace(/^#/, "");
+    if (!hash) return;
+
+    isSyncingFromUrlRef.current = true;
+    const [routePart, queryPart] = hash.split("?");
+    const params = new URLSearchParams(queryPart || "");
+    const route = routePart.toLowerCase();
+
+    // Read and listen view
+    if (route === "read-listen") {
+      const id = params.get("id");
+      if (id) {
+        const found = books.find((b) => b.id === id);
+        if (found) {
+          setReadListenBook(found);
+        } else {
+          fetch(`/api/books/${encodeURIComponent(id)}`)
+            .then((r) => (r.ok ? r.json() : null))
+            .then((detail) => {
+              if (detail) {
+                setReadListenBook({
+                  id: detail.id,
+                  abookId: detail.abookId,
+                  ebookId: detail.ebookId,
+                  title: detail.title,
+                  authors: detail.authors,
+                  narrators: detail.narrators,
+                  coverUrl: detail.coverUrl,
+                  category: detail.category || "",
+                  language: detail.language || "tr",
+                  languageName: detail.languageName || "Türkçe",
+                  status: "will_consume",
+                  durationMs: detail.durationMs || 0,
+                  positionMs: detail.positionMs || 0,
+                  progress: 0,
+                  hasEbook: detail.hasEbook,
+                });
+              }
+            })
+            .catch(() => {});
+        }
+      }
+    } else {
+      setReadListenBook(null);
+    }
+
+    // Modal book detail
+    const modalBookId = params.get("book");
+    setDetailBookId(modalBookId || null);
+
+    // Active Navigation
+    if (route === "discover" || route === "search") {
+      setNav({ type: "search" });
+      const q = params.get("q") || "";
+      if (q) {
+        setGlobalSearch(q);
+        setSearchSubmitQuery(q);
+        setSearchNonce((n) => n + 1);
+      }
+    } else if (route === "favorites") {
+      setNav({ type: "favorites" });
+    } else if (route === "collection") {
+      const colId = params.get("id");
+      if (colId) setNav({ type: "collection", id: colId });
+      else setNav({ type: "library" });
+    } else if (route === "vocabulary") {
+      setNav({ type: "vocabulary" });
+    } else if (route === "downloads") {
+      setNav({ type: "downloads" });
+    } else if (route === "stats") {
+      setNav({ type: "stats" });
+    } else if (route === "library") {
+      setNav({ type: "library" });
+    }
+
+    // Filters
+    const status = params.get("status");
+    if (status && ["all", "consuming", "will_consume", "consumed"].includes(status)) {
+      setStatusFilter(status as "all" | "consuming" | "will_consume" | "consumed");
+    }
+    const sort = params.get("sort");
+    if (sort && ["recent", "title", "duration", "progress"].includes(sort)) {
+      setSortBy(sort as "recent" | "title" | "duration" | "progress");
+    }
+    const qParam = params.get("q");
+    if (qParam && route !== "discover" && route !== "search") {
+      setLibraryQuery(qParam);
+    }
+
+    setTimeout(() => {
+      isSyncingFromUrlRef.current = false;
+    }, 100);
+  }, [books]);
+
+  // Initial parse on load and hash change listener
+  useEffect(() => {
+    parseUrlState();
+    window.addEventListener("hashchange", parseUrlState);
+    return () => window.removeEventListener("hashchange", parseUrlState);
+  }, [parseUrlState]);
+
+  // 2. Sync state back to URL hash whenever navigation, filters, modal or search change
+  useEffect(() => {
+    if (typeof window === "undefined" || isSyncingFromUrlRef.current) return;
+
+    let route = "library";
+    const params = new URLSearchParams();
+
+    if (readListenBook) {
+      route = "read-listen";
+      params.set("id", readListenBook.id);
+    } else {
+      if (nav.type === "search") {
+        route = "discover";
+        if (searchSubmitQuery) params.set("q", searchSubmitQuery);
+      } else if (nav.type === "favorites") {
+        route = "favorites";
+        if (sortBy !== "recent") params.set("sort", sortBy);
+        if (libraryQuery) params.set("q", libraryQuery);
+      } else if (nav.type === "collection") {
+        route = "collection";
+        params.set("id", nav.id);
+        if (sortBy !== "recent") params.set("sort", sortBy);
+        if (libraryQuery) params.set("q", libraryQuery);
+      } else if (nav.type === "vocabulary") {
+        route = "vocabulary";
+      } else if (nav.type === "downloads") {
+        route = "downloads";
+      } else if (nav.type === "stats") {
+        route = "stats";
+      } else {
+        route = "library";
+        if (statusFilter !== "all") params.set("status", statusFilter);
+        if (sortBy !== "recent") params.set("sort", sortBy);
+        if (libraryQuery) params.set("q", libraryQuery);
+      }
+    }
+
+    if (detailBookId) {
+      params.set("book", detailBookId);
+    }
+
+    const queryStr = params.toString();
+    const newHash = queryStr ? `#${route}?${queryStr}` : `#${route}`;
+
+    if (window.location.hash !== newHash) {
+      window.history.replaceState(null, "", newHash);
+    }
+  }, [
+    nav,
+    statusFilter,
+    sortBy,
+    libraryQuery,
+    searchSubmitQuery,
+    detailBookId,
+    readListenBook,
+  ]);
+
   const shelfBookIds = useMemo(() => new Set(books.map((b) => b.id)), [books]);
 
   // Featured "Continue Listening" hero book (Storytel signature home card)
