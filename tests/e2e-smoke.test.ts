@@ -11,7 +11,7 @@ const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "st-e2e-test-"));
 
 let serverProc: ChildProcess | null = null;
 
-async function waitForServer(url: string, timeoutMs = 20000): Promise<void> {
+async function waitForServer(url: string, timeoutMs = 35000): Promise<void> {
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
     try {

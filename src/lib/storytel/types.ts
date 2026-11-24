@@ -41,6 +41,7 @@ export interface SearchResultBook {
   language: string;
   languageName: string;
   onBookshelf?: boolean;
+  recommendationReason?: string;
 }
 
 export interface BookChapter {

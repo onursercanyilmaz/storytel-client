@@ -75,7 +75,13 @@ const DICT = {
     "search.searching": "Storytel kataloğunda aranıyor...",
     "search.emptyTitle": "Yeni hikayeler keşfet",
     "search.emptyDesc":
-      "Arama yaptıktan sonra dil, kategori ve süreye göre filtreleyebilirsin.",
+      "Arama yaptıktan sonra dil, kategori ve süreye göre filtreleyebilirsin veya kitaplığına özel hazırlanan aşağıdaki önerileri keşfedebilirsin.",
+    "search.recommendedTitle": "Kitaplığına Göre Önerilenler",
+    "search.recommendedDesc":
+      "Okuduğun ve dinlediğin kitapların yazarlarına ve türlerine göre senin için seçildi.",
+    "search.quickChips": "Kitaplığından Popüler Konu & Yazarlar:",
+    "search.refreshRecs": "Önerileri Yenile",
+    "search.exploreMore": "Aramada İncele",
     "search.noResults": "Seçili kriterlere uygun sesli kitap bulunamadı.",
     "search.listen": "Dinle",
     "search.onShelf": "Kitaplıkta",
@@ -198,7 +204,13 @@ const DICT = {
     "search.searching": "Searching Storytel catalog...",
     "search.emptyTitle": "Discover new stories",
     "search.emptyDesc":
-      "Search the catalog and filter results by language, category, or duration.",
+      "Search and filter by language, category, and duration, or explore personalized recommendations based on your library below.",
+    "search.recommendedTitle": "Recommended for You",
+    "search.recommendedDesc":
+      "Curated based on authors and genres from your listening and reading history.",
+    "search.quickChips": "Popular Topics & Authors from your Library:",
+    "search.refreshRecs": "Refresh Recommendations",
+    "search.exploreMore": "Explore in Search",
     "search.noResults": "No audiobooks match the selected filters.",
     "search.listen": "Listen",
     "search.onShelf": "On Shelf",

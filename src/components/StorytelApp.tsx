@@ -770,6 +770,13 @@ export default function StorytelApp({ email, onLogout }: StorytelAppProps) {
             query={searchSubmitQuery}
             searchNonce={searchNonce}
             shelfBookIds={shelfBookIds}
+            shelfBooks={books}
+            onSearchQuery={(q) => {
+              setGlobalSearch(q);
+              setSearchSubmitQuery(q.trim());
+              setSearchNonce((n) => n + 1);
+              setNav({ type: "search" });
+            }}
             onAddToShelf={handleAddToShelf}
             onOpenDetail={(id) => setDetailBookId(id)}
             onOpenReadListen={(b) => setReadListenBook(b)}

@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   BookOpen,
   Check,
+  Headphones,
   Loader2,
   Play,
   Plus,
+  RotateCw,
   Sparkles,
 } from "lucide-react";
 import type { BookshelfBook, SearchResultBook } from "@/lib/storytel/types";
@@ -18,6 +20,8 @@ interface SearchViewProps {
   query: string;
   searchNonce: number;
   shelfBookIds: Set<string>;
+  shelfBooks?: BookshelfBook[];
+  onSearchQuery?: (q: string) => void;
   onAddToShelf: (bookId: string) => Promise<void>;
   onOpenDetail: (bookId: string) => void;
   onOpenReadListen: (book: BookshelfBook) => void;
@@ -47,6 +51,8 @@ export default function SearchView({
   query,
   searchNonce,
   shelfBookIds,
+  shelfBooks,
+  onSearchQuery,
   onAddToShelf,
   onOpenDetail,
   onOpenReadListen,
@@ -60,6 +66,40 @@ export default function SearchView({
   const [hasSearched, setHasSearched] = useState(false);
   const [addingId, setAddingId] = useState<string | null>(null);
 
+  // Recommendations state
+  const [recommendations, setRecommendations] = useState<SearchResultBook[]>([]);
+  const [recChips, setRecChips] = useState<
+    { label: string; query: string; type: "author" | "category" }[]
+  >([]);
+  const [recsLoading, setRecsLoading] = useState(false);
+  const [refreshingRecs, setRefreshingRecs] = useState(false);
+
+  const fetchRecommendations = useCallback(async (force = false) => {
+    if (force) setRefreshingRecs(true);
+    else setRecsLoading(true);
+    try {
+      const res = await fetch(
+        `/api/recommendations${force ? "?refresh=true" : ""}`,
+      );
+      if (res.ok) {
+        const data = await res.json();
+        setRecommendations(data.recommendations || []);
+        setRecChips(data.chips || []);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setRecsLoading(false);
+      setRefreshingRecs(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!hasSearched && recommendations.length === 0) {
+      void fetchRecommendations();
+    }
+  }, [hasSearched, recommendations.length, fetchRecommendations]);
+
   const [langFilter, setLangFilter] = useState<string>("all");
   const [formatFilter, setFormatFilter] = useState<
     "all" | "abook" | "ebook" | "both"
@@ -67,11 +107,17 @@ export default function SearchView({
   const [durationFilter, setDurationFilter] = useState<
     "all" | "short" | "medium" | "long"
   >("all");
-  const [sortBy, setSortBy] = useState<"relevant" | "duration_asc" | "duration_desc">("relevant");
+  const [sortBy, setSortBy] = useState<
+    "relevant" | "duration_asc" | "duration_desc"
+  >("relevant");
 
   useEffect(() => {
     const trimmed = query.trim();
-    if (!trimmed) return;
+    if (!trimmed) {
+      setHasSearched(false);
+      setResults([]);
+      return;
+    }
     let active = true;
     setLoading(true);
     setHasSearched(true);
@@ -156,10 +202,240 @@ export default function SearchView({
           <span className="text-sm">{t("search.searching")}</span>
         </div>
       ) : !hasSearched ? (
-        <div className="py-24 text-center space-y-2">
-          <Sparkles className="w-9 h-9 text-[#FF5500]/70 mx-auto" />
-          <h2 className="text-lg font-bold st-ink">{t("search.emptyTitle")}</h2>
-          <p className="text-sm st-muted">{t("search.emptyDesc")}</p>
+        <div className="space-y-8">
+          {/* Header Banner */}
+          <div className="p-6 md:p-8 rounded-3xl st-surface border st-border relative overflow-hidden bg-gradient-to-r from-orange-500/10 via-transparent to-rose-500/10">
+            <div className="max-w-2xl space-y-2">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold st-accent-soft text-[#FF5500]">
+                <Sparkles className="w-3.5 h-3.5" />
+                {t("search.recommendedTitle")}
+              </div>
+              <h2 className="text-xl md:text-2xl font-bold st-ink">
+                {t("search.emptyTitle")}
+              </h2>
+              <p className="text-sm st-muted leading-relaxed">
+                {t("search.emptyDesc")}
+              </p>
+            </div>
+
+            {/* Quick Chips extracted from shelf */}
+            {recChips.length > 0 && (
+              <div className="mt-5 pt-5 border-t st-border space-y-2.5">
+                <div className="text-xs font-semibold st-muted flex items-center justify-between">
+                  <span>{t("search.quickChips")}</span>
+                  <button
+                    type="button"
+                    onClick={() => void fetchRecommendations(true)}
+                    disabled={refreshingRecs}
+                    className="flex items-center gap-1 text-[11px] text-[#FF5500] hover:underline cursor-pointer disabled:opacity-50"
+                  >
+                    <RotateCw
+                      className={`w-3 h-3 ${refreshingRecs ? "animate-spin" : ""}`}
+                    />
+                    {t("search.refreshRecs")}
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {recChips.map((chip, idx) => (
+                    <button
+                      key={`${chip.type}-${chip.label}-${idx}`}
+                      type="button"
+                      onClick={() => onSearchQuery?.(chip.query)}
+                      className="px-3.5 py-1.5 rounded-full st-bg border st-border text-xs font-medium st-ink hover:border-[#FF5500] hover:text-[#FF5500] flex items-center gap-1.5 transition cursor-pointer group"
+                    >
+                      <span className="text-[#FF5500] font-bold">
+                        {chip.type === "author" ? "👤" : "🏷️"}
+                      </span>
+                      <span>{chip.label}</span>
+                      <span className="opacity-0 group-hover:opacity-100 transition text-[10px] text-muted">
+                        →
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Recommendations Grid */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold st-ink flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#FF5500]" />
+                  {t("search.recommendedTitle")}
+                </h3>
+                <p className="text-xs st-muted">
+                  {t("search.recommendedDesc")}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => void fetchRecommendations(true)}
+                disabled={refreshingRecs}
+                className="px-3 py-1.5 rounded-full st-surface border st-border text-xs font-semibold st-ink hover:border-[#FF5500] flex items-center gap-1.5 transition cursor-pointer disabled:opacity-50"
+                title="Yeni öneriler getir"
+              >
+                <RotateCw
+                  className={`w-3.5 h-3.5 ${refreshingRecs ? "animate-spin" : ""}`}
+                />
+                <span className="hidden sm:inline">
+                  {t("search.refreshRecs")}
+                </span>
+              </button>
+            </div>
+
+            {recsLoading ? (
+              <div className="py-20 flex flex-col items-center gap-3 st-muted">
+                <Loader2 className="w-7 h-7 text-[#FF5500] animate-spin" />
+                <span className="text-sm">
+                  Kitaplığına benzer öneriler hazırlanıyor...
+                </span>
+              </div>
+            ) : recommendations.length === 0 ? (
+              <div className="py-16 text-center text-sm st-muted">
+                {t("search.noResults")}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                {recommendations.map((book) => {
+                  const onShelf = shelfBookIds.has(book.id);
+                  const isAdding = addingId === book.id;
+                  return (
+                    <div
+                      key={book.id}
+                      className="group flex flex-col rounded-2xl st-surface border st-border overflow-hidden hover:border-[#FF5500]/50 transition-all shadow-sm hover:shadow-md cursor-pointer"
+                      onClick={() => onOpenDetail(book.id)}
+                    >
+                      {/* Cover with Format Badges */}
+                      <div className="relative aspect-square overflow-hidden bg-zinc-900">
+                        {book.coverUrl ? (
+                          <img
+                            src={book.coverUrl}
+                            alt={book.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="w-full h-full st-surface-alt flex items-center justify-center text-xs st-muted">
+                            Kapak Yok
+                          </div>
+                        )}
+
+                        {/* Format badges */}
+                        <div className="absolute top-2 left-2 flex items-center gap-1">
+                          {book.hasAbook && (
+                            <span
+                              className="w-6 h-6 rounded-full bg-black/75 backdrop-blur-sm text-white flex items-center justify-center text-[10px] shadow"
+                              title="Sesli Kitap"
+                            >
+                              <Headphones className="w-3 h-3 text-[#FF5500]" />
+                            </span>
+                          )}
+                          {book.hasEbook && (
+                            <span
+                              className="w-6 h-6 rounded-full bg-black/75 backdrop-blur-sm text-white flex items-center justify-center text-[10px] shadow"
+                              title="E-Kitap (EPUB)"
+                            >
+                              <BookOpen className="w-3 h-3 text-emerald-400" />
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Duration pill */}
+                        {book.durationMs > 0 && (
+                          <span className="absolute bottom-2 right-2 px-2 py-0.5 rounded-full bg-black/80 backdrop-blur-sm text-[10px] font-medium text-white shadow">
+                            {formatDurationMs(book.durationMs)}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Content */}
+                      <div className="p-3 flex-1 flex flex-col justify-between space-y-2">
+                        <div className="space-y-1">
+                          {book.recommendationReason && (
+                            <div
+                              className="text-[10px] font-semibold text-[#FF5500] line-clamp-1"
+                              title={book.recommendationReason}
+                            >
+                              ✨ {book.recommendationReason}
+                            </div>
+                          )}
+                          <h4 className="text-xs font-bold st-ink line-clamp-2 leading-snug group-hover:text-[#FF5500] transition">
+                            {book.title}
+                          </h4>
+                          <p className="text-[11px] st-muted line-clamp-1">
+                            {book.authors || "Bilinmeyen Yazar"}
+                          </p>
+                        </div>
+
+                        {/* Actions */}
+                        <div
+                          className="pt-2 border-t st-border flex items-center gap-1.5"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <button
+                            type="button"
+                            disabled={onShelf || isAdding}
+                            onClick={async () => {
+                              setAddingId(book.id);
+                              await onAddToShelf(book.id);
+                              setAddingId(null);
+                            }}
+                            className={`flex-1 py-1.5 px-2 rounded-xl text-[11px] font-bold flex items-center justify-center gap-1 transition cursor-pointer ${
+                              onShelf
+                                ? "bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
+                                : "st-accent-soft border border-[#FF5500]/30 text-[#FF5500] hover:bg-[#FF5500] hover:text-white"
+                            }`}
+                          >
+                            {isAdding ? (
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : onShelf ? (
+                              <>
+                                <Check className="w-3 h-3" />
+                                <span>{t("search.onShelf")}</span>
+                              </>
+                            ) : (
+                              <>
+                                <Plus className="w-3 h-3" />
+                                <span>{t("search.add")}</span>
+                              </>
+                            )}
+                          </button>
+
+                          {book.hasAbook && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                playBook(searchBookToShelfBook(book), 0)
+                              }
+                              className="p-1.5 rounded-xl st-surface-alt border st-border st-ink hover:text-[#FF5500] hover:border-[#FF5500] transition cursor-pointer shrink-0"
+                              title={t("search.listen")}
+                            >
+                              <Play className="w-3 h-3 fill-current" />
+                            </button>
+                          )}
+
+                          {book.hasEbook && onOpenReadListen && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                onOpenReadListen(searchBookToShelfBook(book))
+                              }
+                              className="p-1.5 rounded-xl st-surface-alt border st-border st-ink hover:text-emerald-500 hover:border-emerald-500 transition cursor-pointer shrink-0"
+                              title="Oku & Dinle"
+                            >
+                              <BookOpen className="w-3 h-3" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       ) : results.length === 0 ? (
         <div className="py-20 text-center text-sm st-muted">
