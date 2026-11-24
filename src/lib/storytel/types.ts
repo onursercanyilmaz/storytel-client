@@ -23,6 +23,8 @@ export interface BookshelfBook {
   collectionIds?: string[];
   isDownloaded?: boolean;
   downloadedBytes?: number;
+  audioBytes?: number | null;
+  ebookBytes?: number | null;
 }
 
 export interface SearchResultBook {
@@ -61,6 +63,8 @@ export interface BookDetailResponse {
   ebookId?: string | null;
   hasAbook?: boolean;
   hasEbook?: boolean;
+  audioBytes?: number | null;
+  ebookBytes?: number | null;
   title: string;
   authors: string;
   narrators: string;

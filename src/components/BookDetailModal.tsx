@@ -145,6 +145,10 @@ export default function BookDetailModal({
     detail?.hasAbook ??
       (abookId || shelfBook?.abookId || durationMs > 0),
   );
+  const audioBytes =
+    detail?.audioBytes ??
+    (durationMs > 0 ? Math.round((durationMs / 1000) * 8500) : null);
+  const ebookBytes = detail?.ebookBytes ?? null;
 
   const handlePlay = (startSec?: number) => {
     void playBook(
@@ -366,7 +370,9 @@ export default function BookDetailModal({
                   title="EPUB e-kitap dosyasını bilgisayarına indir"
                 >
                   <Download className="w-3.5 h-3.5 text-emerald-500" />
-                  EPUB İndir
+                  {ebookBytes
+                    ? `EPUB İndir (${formatBytes(ebookBytes)})`
+                    : "EPUB İndir"}
                 </a>
               )}
 
@@ -380,7 +386,7 @@ export default function BookDetailModal({
                       title="MP3 ses dosyasını bilgisayarına kaydet"
                     >
                       <Download className="w-3.5 h-3.5" />
-                      MP3 İndir ({formatBytes(dlStatus.bytes)})
+                      MP3 İndir ({formatBytes(dlStatus.bytes || audioBytes || 0)})
                     </a>
                     <button
                       type="button"
@@ -411,7 +417,9 @@ export default function BookDetailModal({
                     title="MP3 sesli kitabı indir"
                   >
                     <Download className="w-3.5 h-3.5 text-[#FF5500]" />
-                    MP3 İndir
+                    {audioBytes
+                      ? `MP3 İndir (~${formatBytes(audioBytes)})`
+                      : "MP3 İndir"}
                   </a>
                 )
               )}

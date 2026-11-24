@@ -34,7 +34,7 @@ import type { BookshelfBook } from "@/lib/storytel/types";
 import type { ParsedEbook } from "@/lib/epub-parser";
 import { toPlayingBook, usePlayer } from "./PlayerContext";
 import { usePreferences } from "./PreferencesContext";
-import { formatTime } from "@/lib/format";
+import { formatTime, formatBytes } from "@/lib/format";
 
 interface ReadAndListenViewProps {
   book: BookshelfBook;
@@ -598,7 +598,13 @@ export default function ReadAndListenView({
               title={lang === "tr" ? "EPUB dosyasını bilgisayarına indir" : "Download EPUB file"}
             >
               <Download className="w-3.5 h-3.5 text-emerald-500" />
-              <span className="hidden sm:inline">EPUB</span>
+              <span className="hidden sm:inline">
+                {ebook?.fileBytes
+                  ? `EPUB (${formatBytes(ebook.fileBytes)})`
+                  : book.ebookBytes
+                    ? `EPUB (${formatBytes(book.ebookBytes)})`
+                    : "EPUB"}
+              </span>
             </a>
           )}
 

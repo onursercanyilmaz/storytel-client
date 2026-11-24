@@ -13,6 +13,7 @@ export interface ParsedEbook {
   chapters: EbookChapter[];
   totalChars: number;
   drmProtected?: boolean;
+  fileBytes?: number;
 }
 
 /**
@@ -201,5 +202,6 @@ export function parseEpubBuffer(buf: Buffer): ParsedEbook {
     title: bookTitle,
     chapters,
     totalChars,
+    fileBytes: buf.length,
   };
 }
