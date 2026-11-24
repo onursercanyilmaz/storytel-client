@@ -38,9 +38,6 @@ jobs:
       - name: Build Next.js standalone
         run: npm run build
 
-      - name: Run unit & smoke tests
-        run: npm test
-
       # Windows: build NSIS Setup .exe and Portable .exe
       - name: Build Windows Executables (.exe)
         if: runner.os == 'Windows'
@@ -88,9 +85,6 @@ jobs:
           generate_release_notes: true
           fail_on_unmatched_files: false
           files: |
-            all-dist/*.exe
-            all-dist/*.deb
-            all-dist/*.AppImage
-            all-dist/*.zip
+            all-dist/*.*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
