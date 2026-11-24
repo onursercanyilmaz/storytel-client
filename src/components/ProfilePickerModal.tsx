@@ -115,6 +115,9 @@ export default function ProfilePickerModal() {
         <button
           type="button"
           onClick={() => {
+            if (typeof window !== "undefined") {
+              sessionStorage.setItem("storytel_profile_chosen", "true");
+            }
             setShowPickerModal(false);
             setIsManaging(false);
             setEditingProfile(null);

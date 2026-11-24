@@ -19,6 +19,13 @@ const root = path.join(__dirname, "..");
 const standaloneDir = path.join(root, ".next", "standalone");
 
 if (fs.existsSync(standaloneDir)) {
+  const icoPath = path.join(root, "public", "favicon.ico");
+  if (!fs.existsSync(icoPath)) {
+    try {
+      require("./generate-favicon");
+    } catch {}
+  }
+
   const publicSrc = path.join(root, "public");
   const publicDest = path.join(standaloneDir, "public");
   copyDir(publicSrc, publicDest);

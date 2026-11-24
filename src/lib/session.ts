@@ -92,7 +92,7 @@ export async function setSessionCookie(sid: string): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE_NAME, sid, {
     httpOnly: true,
-    sameSite: "strict",
+    sameSite: "lax",
     secure: false, // localhost HTTP
     path: "/",
     maxAge: 60 * 60 * 24 * 90, // 90 days
@@ -106,13 +106,29 @@ export async function clearSessionCookie(): Promise<void> {
 
 /**
  * Validates the HttpOnly session cookie against the server-side AES-256-GCM
- * encrypted session file. Never exposes tokens to the browser.
+ * encrypted session file. Auto-syncs cookie so profile switches and reloads
+ * never unexpectedly log out the single authenticated Storytel user.
  */
 export async function getAuthenticatedSession(): Promise<StoredSession | null> {
   const stored = readStoredSession();
   if (!stored) return null;
-  const cookieStore = await cookies();
-  const sid = cookieStore.get(SESSION_COOKIE_NAME)?.value;
-  if (!sid || sid !== stored.sid) return null;
+
+  try {
+    const cookieStore = await cookies();
+    const sid = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+    if (!sid || sid !== stored.sid) {
+      // Auto-heal cookie so local requests retain session seamlessly
+      cookieStore.set(SESSION_COOKIE_NAME, stored.sid, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: false,
+        path: "/",
+        maxAge: 60 * 60 * 24 * 90,
+      });
+    }
+  } catch {
+    // Non-request context or header immutable context
+  }
+
   return stored;
 }

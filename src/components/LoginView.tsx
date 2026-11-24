@@ -47,6 +47,9 @@ export default function LoginView({ onSuccess }: LoginViewProps) {
         setSsoMessage(data.message || "");
         if (data.state === "success") {
           clearInterval(interval);
+          if (typeof window !== "undefined") {
+            sessionStorage.removeItem("storytel_profile_chosen");
+          }
           onSuccess(data.email || "", "sso");
         } else if (data.state === "error") {
           setError(data.error || data.message || "Giriş başarısız.");
@@ -101,6 +104,9 @@ export default function LoginView({ onSuccess }: LoginViewProps) {
       if (!res.ok) {
         setError(data.error || "Giriş başarısız.");
         return;
+      }
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem("storytel_profile_chosen");
       }
       onSuccess(data.email || email, "legacy");
     } catch {

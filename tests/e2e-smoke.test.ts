@@ -26,15 +26,16 @@ async function waitForServer(url: string, timeoutMs = 35000): Promise<void> {
 }
 
 test.before(async () => {
-  const nextBin = path.join(process.cwd(), "node_modules", "next", "dist", "bin", "next");
-  serverProc = spawn(
-    process.execPath,
-    [nextBin, "start", "-H", "127.0.0.1", "-p", String(PORT)],
-    {
-      env: { ...process.env, STORYTEL_DATA_DIR: tempDir },
-      stdio: "ignore",
+  const runner = path.join(process.cwd(), "scripts", "start-server.js");
+  serverProc = spawn(process.execPath, [runner], {
+    env: {
+      ...process.env,
+      PORT: String(PORT),
+      HOSTNAME: "127.0.0.1",
+      STORYTEL_DATA_DIR: tempDir,
     },
-  );
+    stdio: "ignore",
+  });
   await waitForServer(`${BASE_URL}/api/auth/me`);
 });
 

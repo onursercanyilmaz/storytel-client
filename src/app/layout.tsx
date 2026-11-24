@@ -17,7 +17,13 @@ export const metadata: Metadata = {
   description: "Storytel sesli kitap oynatıcısı",
   manifest: "/manifest.json",
   icons: {
-    icon: "/icon.svg",
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/icon.png", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: "/icon.png",
   },
 };
 

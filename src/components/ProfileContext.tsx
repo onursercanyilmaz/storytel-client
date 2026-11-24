@@ -31,6 +31,14 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
         const data = await res.json();
         setProfiles(data.profiles || []);
         setActiveProfile(data.activeProfile || null);
+
+        // Auto-show Netflix "Kim Dinliyor?" picker on first load in this session
+        if (typeof window !== "undefined") {
+          const chosen = sessionStorage.getItem("storytel_profile_chosen");
+          if (!chosen) {
+            setShowPickerModal(true);
+          }
+        }
       }
     } catch {
       // silently fail
@@ -54,6 +62,9 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
         const data = await res.json();
         setActiveProfile(data.activeProfile);
         setProfiles(data.profiles);
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem("storytel_profile_chosen", "true");
+        }
         setShowPickerModal(false);
         // Dispatch custom event to notify components to reload bookshelf/stats/favorites
         window.dispatchEvent(new CustomEvent("profile-switched", { detail: data.activeProfile }));
