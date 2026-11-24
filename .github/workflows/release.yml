@@ -48,8 +48,8 @@ jobs:
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name || inputs.tag_name }}
-          name: "storytel-client ${{ github.ref_name || inputs.tag_name }}"
+          tag_name: ${{ inputs.tag_name || github.ref_name }}
+          name: "storytel-client ${{ inputs.tag_name || github.ref_name }}"
           draft: false
           prerelease: false
           generate_release_notes: true
