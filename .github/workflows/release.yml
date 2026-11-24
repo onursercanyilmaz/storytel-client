@@ -1,4 +1,4 @@
-name: Build and Release
+name: Build and Release Desktop Apps
 
 on:
   push:
@@ -15,8 +15,13 @@ permissions:
   contents: write
 
 jobs:
-  build-release:
-    runs-on: ubuntu-latest
+  build-desktop:
+    name: Build (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -30,22 +35,47 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build Next.js
+      - name: Build Next.js standalone
         run: npm run build
 
-      - name: Run tests
+      - name: Run unit & smoke tests
         run: npm test
 
-      - name: Package Portable Windows Release
-        run: |
-          mkdir -p release-pkg
-          zip -r release-pkg/storytel-client-windows-portable.zip . -x ".git/*" "node_modules/.cache/*" ".next/cache/*"
+      # Windows: build NSIS Setup .exe and Portable .exe
+      - name: Build Windows Executables (.exe)
+        if: runner.os == 'Windows'
+        run: npx electron-builder --win --publish never
 
-      - name: Package Portable Linux / macOS Release
-        run: |
-          tar -czf release-pkg/storytel-client-linux-macos-portable.tar.gz --exclude='.git' --exclude='node_modules/.cache' --exclude='.next/cache' .
+      # Linux: build .deb and .AppImage
+      - name: Build Linux Packages (.deb & .AppImage)
+        if: runner.os == 'Linux'
+        run: npx electron-builder --linux deb AppImage --publish never
 
-      - name: Publish GitHub Release
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries-${{ matrix.os }}
+          path: dist-electron/*.*
+          if-no-files-found: warn
+
+  publish-github-release:
+    name: Publish GitHub Release
+    needs: build-desktop
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all built binaries
+        uses: actions/download-artifact@v4
+        with:
+          path: all-dist
+          merge-multiple: true
+
+      - name: List binaries to publish
+        run: ls -la all-dist
+
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ inputs.tag_name || github.ref_name }}
@@ -54,7 +84,10 @@ jobs:
           prerelease: false
           generate_release_notes: true
           files: |
-            release-pkg/storytel-client-windows-portable.zip
-            release-pkg/storytel-client-linux-macos-portable.tar.gz
+            all-dist/*.exe
+            all-dist/*.deb
+            all-dist/*.AppImage
+            all-dist/*.dmg
+            all-dist/*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

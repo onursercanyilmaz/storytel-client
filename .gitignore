@@ -15,6 +15,10 @@ next-env.d.ts
 .env
 .env*.local
 
+# Desktop Build Artifacts
+dist-electron/
+release-pkg/
+
 # OS / Logs
 .DS_Store
 Thumbs.db
