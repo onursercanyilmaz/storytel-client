@@ -251,7 +251,7 @@ a {
 
 .section-header {
   text-align: center;
-  max-width: 620px;
+  max-width: 780px;
   margin: 0 auto 48px;
 }
 
@@ -265,15 +265,19 @@ a {
 }
 
 .section-header h2 {
-  font-size: clamp(1.75rem, 3.2vw, 2.4rem);
+  font-size: clamp(1.85rem, 3.4vw, 2.5rem);
   font-weight: 800;
   letter-spacing: -0.025em;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
+  text-wrap: balance;
 }
 
 .section-header p {
   color: var(--muted);
-  font-size: 0.98rem;
+  font-size: 1rem;
+  max-width: 660px;
+  margin: 0 auto;
+  line-height: 1.6;
 }
 
 /* Bento Feature Grid */
@@ -448,74 +452,218 @@ footer p + p {
   opacity: 0.75;
 }
 
-/* Download Cards */
+/* Download Cards & Grid */
+.download-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  align-items: stretch;
+}
+
 .download-card {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  text-align: center;
-  padding: 32px 24px;
+  text-align: left;
+  padding: 32px 28px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.015) 100%), var(--surface);
+  border: 1px solid var(--border);
+  position: relative;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.download-card .card-icon {
-  font-size: 2.2rem;
-  width: auto;
-  height: auto;
-  margin: 0 auto 14px;
+.download-card:hover {
+  border-color: rgba(255, 85, 0, 0.45);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.45), 0 0 24px rgba(255, 85, 0, 0.12);
 }
 
-.download-card h3 {
-  font-size: 1.25rem;
+.dl-platform-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.dl-icon-badge {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.download-card:hover .dl-icon-badge {
+  transform: scale(1.06);
+}
+
+.dl-icon-win {
+  background: rgba(0, 164, 239, 0.12);
+  color: #00adef;
+  border: 1px solid rgba(0, 164, 239, 0.25);
+}
+
+.dl-icon-mac {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dl-icon-linux {
+  background: rgba(255, 170, 0, 0.12);
+  color: #ffaa00;
+  border: 1px solid rgba(255, 170, 0, 0.25);
+}
+
+.dl-title-wrap h3 {
+  font-size: 1.35rem;
   font-weight: 800;
-  margin-bottom: 6px;
+  margin: 0 0 4px;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+.dl-tag {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--muted);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .dl-compat {
   color: var(--muted);
-  font-size: 0.85rem;
-  margin-bottom: 22px;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  margin: 0 0 24px 0;
 }
 
 .dl-actions {
   margin-top: auto;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
-.btn-block {
-  width: 100%;
+.btn-dl {
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 52px;
+  padding: 0 20px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #ff6b1a, #ff5500);
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 8px 24px rgba(255, 85, 0, 0.32);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-dl:hover {
+  background: linear-gradient(135deg, #ff7e38, #ff5500);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(255, 85, 0, 0.45);
+}
+
+.btn-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: rgba(0, 0, 0, 0.28);
+  padding: 3px 8px;
+  border-radius: 6px;
+  margin-left: auto;
+  letter-spacing: 0.02em;
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .dl-alt-text {
-  font-size: 0.76rem;
+  font-size: 0.8rem;
   color: var(--muted);
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   opacity: 0.85;
 }
 
-.dl-footer-note {
-  text-align: center;
-  margin-top: 32px;
-  font-size: 0.92rem;
+/* PWA Bottom Banner */
+.dl-pwa-banner {
+  margin-top: 36px;
+  padding: 18px 26px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012));
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.dl-pwa-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.dl-pwa-text {
   color: var(--muted);
+  font-size: 0.92rem;
 }
 
 .badge-pill {
-  display: inline-block;
-  padding: 3px 10px;
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
   border-radius: 9999px;
   background: var(--accent-soft);
   color: var(--accent);
   font-weight: 700;
   font-size: 0.78rem;
-  margin-right: 6px;
+  border: 1px solid rgba(255, 85, 0, 0.25);
 }
 
-.link-accent {
-  color: var(--accent);
+.btn-sm {
+  padding: 8px 18px;
+  font-size: 0.85rem;
   font-weight: 600;
-  text-decoration: underline;
+  border-radius: 9999px;
+}
+
+@media (max-width: 960px) {
+  .download-grid {
+    grid-template-columns: 1fr;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  .dl-pwa-banner {
+    flex-direction: column;
+    text-align: center;
+    justify-content: center;
+  }
+  .dl-pwa-content {
+    flex-direction: column;
+  }
 }
 
 @media (max-width: 900px) {

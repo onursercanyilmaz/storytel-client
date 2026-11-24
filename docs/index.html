@@ -109,63 +109,112 @@
         <div class="grid-3 download-grid">
           <!-- Windows -->
           <article class="card download-card">
-            <div class="card-icon">🪟</div>
-            <h3>Windows</h3>
+            <div class="dl-platform-header">
+              <div class="dl-icon-badge dl-icon-win">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.951-1.801"/>
+                </svg>
+              </div>
+              <div class="dl-title-wrap">
+                <h3>Windows</h3>
+                <span class="dl-tag">x64 / ARM64</span>
+              </div>
+            </div>
             <p class="dl-compat">Windows 10 / 11 (64-bit)</p>
             <div class="dl-actions">
               <a
                 href="https://github.com/onursercanyilmaz/storytel-client/releases/latest"
                 id="btn-dl-win"
-                class="btn btn-primary btn-block"
-                data-i18n="dl.btnWin"
+                class="btn btn-primary btn-block btn-dl"
               >
-                Download for Windows (.zip / .exe)
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <span data-i18n="dl.btnWin">Download for Windows</span>
+                <span class="btn-badge">.zip</span>
               </a>
-              <span class="dl-alt-text">One-click portable package + start.bat</span>
+              <span class="dl-alt-text">✓ Portable • start.bat included</span>
             </div>
           </article>
 
           <!-- macOS -->
           <article class="card download-card">
-            <div class="card-icon">🍎</div>
-            <h3>macOS</h3>
-            <p class="dl-compat">macOS 12 Monterey or later (Apple Silicon &amp; Intel)</p>
+            <div class="dl-platform-header">
+              <div class="dl-icon-badge dl-icon-mac">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.89c.66-.82 1.11-1.96.99-3.1-.96.04-2.13.64-2.81 1.44-.59.69-1.12 1.83-.98 2.94 1.08.08 2.16-.54 2.8-1.28z"/>
+                </svg>
+              </div>
+              <div class="dl-title-wrap">
+                <h3>macOS</h3>
+                <span class="dl-tag">Universal</span>
+              </div>
+            </div>
+            <p class="dl-compat">macOS 12 Monterey or later</p>
             <div class="dl-actions">
               <a
                 href="https://github.com/onursercanyilmaz/storytel-client/releases/latest"
                 id="btn-dl-mac"
-                class="btn btn-primary btn-block"
-                data-i18n="dl.btnMac"
+                class="btn btn-primary btn-block btn-dl"
               >
-                Download for macOS (.tar.gz)
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <span data-i18n="dl.btnMac">Download for macOS</span>
+                <span class="btn-badge">.tar.gz</span>
               </a>
-              <span class="dl-alt-text">Universal portable package</span>
+              <span class="dl-alt-text">✓ Apple Silicon &amp; Intel</span>
             </div>
           </article>
 
           <!-- Linux -->
           <article class="card download-card">
-            <div class="card-icon">🐧</div>
-            <h3>Linux</h3>
-            <p class="dl-compat">Ubuntu, Debian, Fedora, Arch (x64)</p>
+            <div class="dl-platform-header">
+              <div class="dl-icon-badge dl-icon-linux">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12.001 0c-2.427 0-4.42 2.015-4.42 4.47 0 .546.096 1.07.273 1.558C5.589 7.042 4 9.352 4 12.062c0 2.215 1.057 4.184 2.684 5.437-.087.41-.144.834-.144 1.271 0 2.894 2.45 5.23 5.461 5.23 3.012 0 5.46-2.336 5.46-5.23 0-.437-.057-.861-.143-1.271 1.626-1.253 2.682-3.222 2.682-5.437 0-2.71-1.589-5.02-3.854-6.034.177-.488.273-1.012.273-1.558C16.421 2.015 14.428 0 12.001 0z"/>
+                </svg>
+              </div>
+              <div class="dl-title-wrap">
+                <h3>Linux</h3>
+                <span class="dl-tag">x64 / arm64</span>
+              </div>
+            </div>
+            <p class="dl-compat">Ubuntu, Debian, Fedora, Arch</p>
             <div class="dl-actions">
               <a
                 href="https://github.com/onursercanyilmaz/storytel-client/releases/latest"
                 id="btn-dl-linux"
-                class="btn btn-primary btn-block"
-                data-i18n="dl.btnLinux"
+                class="btn btn-primary btn-block btn-dl"
               >
-                Download for Linux (.tar.gz)
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <span data-i18n="dl.btnLinux">Download for Linux</span>
+                <span class="btn-badge">.tar.gz</span>
               </a>
-              <span class="dl-alt-text">Portable standalone package</span>
+              <span class="dl-alt-text">✓ Portable standalone bundle</span>
             </div>
           </article>
         </div>
 
-        <div class="dl-footer-note">
-          <p>
-            <span class="badge-pill">⚡ PWA Ready</span> Or run locally in your browser with zero install: <a href="#quickstart" class="link-accent">Follow Quick Start guide</a>
-          </p>
+        <!-- PWA / Web banner below cards -->
+        <div class="dl-pwa-banner">
+          <div class="dl-pwa-content">
+            <span class="badge-pill">⚡ PWA Ready</span>
+            <span class="dl-pwa-text" data-i18n="dl.pwaText">
+              Want zero install? Run locally in your browser or install as a PWA desktop app.
+            </span>
+          </div>
+          <a href="#quickstart" class="btn btn-secondary btn-sm" data-i18n="dl.pwaBtn">
+            Quick Start Guide →
+          </a>
         </div>
       </div>
     </section>
@@ -363,9 +412,11 @@ npm run build
           "dl.title": "Get storytel-client for your desktop",
           "dl.desc":
             "Choose your operating system below to download the latest desktop installer, portable package, or install as a PWA.",
-          "dl.btnWin": "Download for Windows (.zip / .exe)",
-          "dl.btnMac": "Download for macOS (.tar.gz)",
-          "dl.btnLinux": "Download for Linux (.tar.gz)",
+          "dl.btnWin": "Download for Windows",
+          "dl.btnMac": "Download for macOS",
+          "dl.btnLinux": "Download for Linux",
+          "dl.pwaText": "Want zero install? Run locally in your browser or install as a PWA desktop app.",
+          "dl.pwaBtn": "Quick Start Guide →",
           "feat.kicker": "Features",
           "feat.title": "Everything in the mobile app — and more.",
           "feat.desc":
@@ -433,12 +484,14 @@ npm run build
           "hero.ctaPrimary": "Masaüstü İçin İndir",
           "hero.ctaGithub": "GitHub'da İncele",
           "dl.kicker": "İndirmeler & Sürümler",
-          "dl.title": "storytel-client'ı masaüstüne indir",
+          "dl.title": "Masaüstün İçin storytel-client",
           "dl.desc":
             "Aşağıdan işletim sistemini seçerek en son masaüstü paketini indir veya doğrudan PWA olarak kullan.",
-          "dl.btnWin": "Windows İçin İndir (.zip / .exe)",
-          "dl.btnMac": "macOS İçin İndir (.tar.gz)",
-          "dl.btnLinux": "Linux İçin İndir (.tar.gz)",
+          "dl.btnWin": "Windows İçin İndir",
+          "dl.btnMac": "macOS İçin İndir",
+          "dl.btnLinux": "Linux İçin İndir",
+          "dl.pwaText": "Kurulum istemiyor musun? Tarayıcında yerel olarak çalıştır veya PWA olarak yükle.",
+          "dl.pwaBtn": "Hızlı Başlangıç Rehberi →",
           "feat.kicker": "Özellikler",
           "feat.title": "Mobil uygulamadaki her şey — ve daha fazlası.",
           "feat.desc":
