@@ -96,8 +96,8 @@ Yabancı dilde kitap okurken bilmediğiniz kelimeleri anında öğrenin ve kayde
 
 ```bash
 # 1. Depoyu klonlayın
-git clone https://github.com/onurrabia/storytel.git
-cd storytel
+git clone https://github.com/onursercanyilmaz/storytel-client.git
+cd storytel-client
 
 # 2. Bağımlılıkları yükleyin
 npm install
@@ -212,4 +212,4 @@ Bu uygulamayı kullanabilmek için **geçerli ve aktif bir Storytel aboneliğine
 
 ## Lisans
 
-[MIT](LICENSE) © 2026 onurrabia
+[MIT](LICENSE) © 2026 onursercanyilmaz
