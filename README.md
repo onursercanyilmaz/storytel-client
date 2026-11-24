@@ -1,11 +1,15 @@
+<p align="right">
+  <b>English</b> • <a href="README.tr.md">Türkçe</a>
+</p>
+
 <div align="center">
 
 <img src="docs/banner.jpg" alt="storytel-client — Your audiobooks. On your desktop." width="100%" />
 
 # storytel-client
 
-**Masaüstü için modern, güvenli ve zengin özellikli bağımsız Storytel istemcisi & PWA.**  
-*A modern, security-first unofficial Storytel desktop client with Split-Screen "Read & Listen" mode, multilingual vocabulary builder, and offline downloads.*
+**A modern, security-first unofficial desktop client & PWA for Storytel.**  
+*Featuring a Split-Screen "Read & Listen" studio, multilingual vocabulary builder, library-based smart recommendations, and offline downloads.*
 
 <p align="center">
   <img src="https://img.shields.io/badge/Next.js-15-black?style=flat-square&logo=next.js" alt="Next.js 15" height="22" />
@@ -17,199 +21,202 @@
 </div>
 
 > [!IMPORTANT]
-> **Aktif Storytel Aboneliği Gereklidir / Active Storytel Subscription Required**  
-> Bu uygulama resmi Storytel hesabınız ve API'leri üzerinden çalışır. Sesli kitapları dinlemek, e-kitapları okumak veya indirmek için **aktif bir Storytel aboneliğine sahip olmanız gerekir**.  
-> *(Uygulama bağımsız, açık kaynaklı bir masaüstü arayüzüdür; abonelik gereksinimlerini atlamaz veya korsan içerik barındırmaz).*
+> **Active Storytel Subscription Required**  
+> This application communicates directly with the official Storytel APIs using your own Storytel account. An **active Storytel subscription is strictly required** to stream audio, read e-books, or download media.  
+> *(This is an independent, open-source desktop interface; it does not bypass subscription paywalls or host copyrighted media).*
 
 ---
 
-## 💡 Neden Bu Projeyi Yaptık? / Why We Built This
+## 💡 Why We Built This
 
-Resmi Storytel hizmeti geniş bir kütüphaneye sahip olmasına rağmen masaüstü kullanıcıları için büyük eksiklikler barındırır:
+While Storytel offers an outstanding catalog of audiobooks and e-books, the official desktop experience has critical limitations:
 
-1. **Web'de Dinleme ve Okuma Yok:** Resmi Storytel web sitesi masaüstü tarayıcılarda kitap dinlemeye veya e-kitap okumaya izin vermez; bu özellikler **yalnızca mobil uygulamalarla sınırlandırılmıştır**. Masaüstünde çalışırken sürekli telefona bağımlı kalırsınız.
-2. **Aynı Anda "Oku & Dinle" Deneyimi Yok:** Resmi mobil uygulamada dahi bir eseri ya sadece dinleyebilir ya da sadece okuyabilirsiniz. Özellikle yabancı dil öğrenirken veya odaklanarak okurken metni takip edip profesyonel seslendirmeyi aynı anda dinlemek (Split-Screen) mümkün değildir.
-3. **Entegre Çok Dilli Sözlük & Kelime Defteri Yok:** Yabancı dilde kitap okurken bilmediğiniz bir kelimeye çift tıklayıp anında Türkçe/İngilizce ve 100+ dilde anlamını görmek, sesli telaffuzunu dinlemek ve bunu daha sonra tekrar etmek üzere **Anki** veya **CSV** kartı olarak kaydetmek resmi ekosistemde bulunmaz.
-4. **Kendi Dosyalarını Eşleme & İndirme:** Bilgisayarınızdaki herhangi bir PDF veya EPUB dosyasını sesli kitapla senkronize okuma imkânı veya kitapları çevrimdışı arşivlemek üzere doğrudan `.epub` ve `.mp3` olarak kaydetme seçeneği sunulmaz.
+1. **No Web Player or Reader on Desktop:** The official Storytel website does not support listening to audiobooks or reading e-books on desktop browsers — these capabilities are **strictly confined to mobile apps**. Working on a computer forced users to stay tethered to their phones.
+2. **No Simultaneous "Read & Listen" Mode:** Even on official mobile apps, you can only listen OR read at any given time. There is no split-screen mode to follow the highlighted text while listening to professional voice narrators — an invaluable capability for language learners, accessibility, and focused reading.
+3. **No Integrated Multilingual Vocabulary Tools:** When reading in foreign languages, there is no built-in way to double-click a word, see instant translations (with phonetic IPA and native audio pronunciation), and save it to an **Anki** / **CSV** flashcard deck for spaced repetition.
+4. **No Desktop Personalized Discovery Feed:** The web catalog lacked a personalized recommendation hub tailored to the authors and genres in your listening history.
+5. **No Local File Pairing or Direct Downloads:** Official apps do not allow pairing local `.epub` / `.pdf` files with audiobooks, nor do they provide direct downloads with upfront file size indicators for personal offline backups.
 
-**`storytel-client`**, geçerli Storytel aboneliğinizi masaüstünün büyük ekran konforu, klavye kısayolları, bölünmüş ekran okuma & dinleme stüdyosu ve dil öğrenme araçlarıyla birleştiren bağımsız, modern bir masaüstü oynatıcısı olarak bu ihtiyaçtan doğdu.
-
----
-
-## Öne Çıkan Özellikler / Highlights
-
-### 1. 📖🎧 Oku & Dinle (Split-Screen Read & Listen)
-Aynı eserin hem sesli kitabını dinleyip hem de e-kitabını yan yana okuyabileceğiniz stüdyo modu:
-- **Akıllı Ses Senkronizasyonu (Audio Sync):** Sesli kitap çaldıkça e-kitap metninde ilgili bölüme otomatik akıcı kaydırma.
-- **Kişiselleştirilebilir Okuma Deneyimi:** Sepia, Koyu (Dark) ve Açık (Light) tema seçenekleri; Serif veya Sans yazı tipi; dinamik yazı boyutu ayarı.
-- **Yerel Dosya Desteği:** Storytel kataloğunda e-kitabı olmayan bir sesli kitap dinlerken dahi bilgisayarınızdan dilediğiniz `.epub` veya `.pdf` dosyasını sürükleyip bırakarak sesle birlikte okuyabilirsiniz.
-
-### 2. 🌍 Çok Dilli Kelime Çevirisi & Kelime Defteri (Vocabulary Builder)
-Yabancı dilde kitap okurken bilmediğiniz kelimeleri anında öğrenin ve kaydedin:
-- **Çift Tıkla Anında Çeviri:** Metindeki herhangi bir kelimeye çift tıkladığınızda veya fareyle seçtiğinizde anında çeviri penceresi açılır.
-- **Akıllı Dil Eşleştirmesi:**
-  - **İngilizce Kitaplar:** İngilizce ➔ Türkçe (`EN ➔ TR`) çeviri, IPA fonetik telaffuz ve İngilizce tanım.
-  - **Türkçe Kitaplar:** Türkçe ➔ İngilizce (`TR ➔ EN`) karşılık.
-  - **Diğer Dünya Dilleri (Almanca, Fransızca, İspanyolca, Rusça, İsveççe vb.):** Kitabın orijinal dilinden doğrudan Türkçeye (`DE ➔ TR`, `FR ➔ TR`, `ES ➔ TR`...) çeviri.
-  - **Tek Tıkla Dil Değiştirme (⇄):** Çeviri penceresinden hedef dili anında Türkçe ile İngilizce arasında değiştirebilme.
-- **Doğal Sesli Telaffuz:** Kelimenin orijinal dilinde Web Speech API üzerinden anında sesli dinleme.
-- **Kelime Defterim & Flashcard:** Kaydettiğiniz tüm kelimeleri çalışma kartları olarak tekrar edebilir, "Öğrenildi" olarak işaretleyebilir ve tek tıkla **Anki** veya **CSV** formatında dışa aktarabilirsiniz.
-
-### 3. 💾 Dosya İndirme Seçenekleri (EPUB, MP3, PDF)
-- **EPUB İndirme:** E-kitabı bulunan eserlerde hem detay penceresinden hem okuma ekranından orijinal `.epub` dosyasını tek tıkla bilgisayarınıza indirebilirsiniz.
-- **MP3 İndirme:** Sesli kitapları doğrudan `.mp3` ses dosyası olarak indirebilir ve çevrimdışı dinleyebilirsiniz.
-- **PDF Olarak Kaydet / Yazdır:** E-kitap bölümlerini özel `@media print` mizanpajı ile temiz kitap düzeninde PDF olarak kaydedebilir veya yazdırabilirsiniz.
-
-### 4. 🔒 Güvenli Google SSO & Sıfır Şifre Saklama
-- **Google ile Giriş (Chrome/Edge CDP):** Gerçek Chrome veya Edge tarayıcınızda izole bir oturum açarak Google OAuth doğrulaması yapar; bot korumasına takılmaz.
-- **AES-256-GCM Şifreleme:** Oturum jetonları yerel diskte 256-bit AES-GCM ile şifrelenir (`.data/session.enc`).
-- **Sıfır Düz Metin Şifre:** Şifreniz asla diske veya çerezlere yazılmaz. Tarayıcı yalnızca `HttpOnly; SameSite=Strict` oturum çerezi alır.
-
-### 5. 🎛️ Profesyonel Ses Oynatıcı & Mobil Senkronizasyon
-- **Kaldığın Yerden Devam Et:** Telefonunuzda dinlediğiniz son saniye anında masaüstüyle senkronize olur (`sendBeacon` + periyodik senkronizasyon).
-- **Hız Kontrolü:** `0.5x` ile `3.0x` arasında hassas hız ayarı.
-- **Uyku Zamanlayıcısı:** 5–60 dakika veya "Bölüm Sonunda Durdur".
-- **Medya Tuşları & Kısayollar:** Klavyedeki Space, ok tuşları (`←/→`) ve işletim sistemi medya tuşları (Web Media Session API) tam uyumludur.
+**`storytel-client`** was created to bridge this gap: an open, private, keyboard-friendly desktop workstation combining big-screen comfort, a split-screen Read & Listen studio, and powerful language acquisition tools with your existing Storytel subscription.
 
 ---
 
-## Ekran Görüntüleri & Görünüm
+## Key Features
 
-| Aydınlık Tema (Light Editorial) | Koyu Tema (Charcoal Dark) |
+### 1. 📖🎧 Split-Screen Read & Listen Studio
+Immerse yourself by reading and listening side by side:
+- **Intelligent Audio Sync:** Automatically scrolls the e-book prose to keep pace with the audiobook narration.
+- **Customizable Reader Atmosphere:** Sepia, Charcoal Dark, and Clean Light themes; Serif or Sans-serif typography; granular font size scaling.
+- **Local File Uploads:** Listening to an audiobook without an official e-book release? Drag-and-drop your own local `.epub` or `.pdf` file to read along in real time.
+
+### 2. 🌍 Multilingual Vocabulary Builder & Flashcards
+Learn new languages naturally as you read:
+- **Instant Double-Click Lookup:** Double-click or select any word in the text to summon an unobtrusive translation popup.
+- **Smart Language Pairings:**
+  - **English books:** English ➔ Turkish (`EN ➔ TR`) translation, IPA phonetic pronunciation, and English definition.
+  - **Turkish books:** Turkish ➔ English (`TR ➔ EN`) translation.
+  - **Global languages (German, French, Spanish, Russian, Swedish, etc.):** Direct translation from the book's native tongue to Turkish (`DE ➔ TR`, `FR ➔ TR`, `ES ➔ TR`...).
+  - **1-Click Language Switch (⇄):** Seamlessly toggle target language between Turkish and English in the card.
+- **Native Pronunciation:** Instant audio pronunciation in the original language via the Web Speech API.
+- **Vocabulary Notebook & Flashcards:** Review saved words with interactive flashcards, mark them as mastered, and export directly to **Anki** or **CSV**.
+
+### 3. ✨ Library-Based Smart Recommendations
+- **Personalized Recommendation Engine:** The search & discover view analyzes your bookshelf, favorite authors, and genres to curate fresh, unread titles.
+- **Contextual Recommendation Reasons:** Every suggested book displays why it was recommended (e.g. *✨ Because you listened to John Verdon* or *✨ Recommended from Mystery & Thriller*).
+- **1-Click Discovery Chips:** Quick filter chips for top authors and categories from your shelf (`👤 Author`, `🏷️ Category`) let you explore with a single click.
+
+### 4. 💾 File Downloads with Upfront Size Indicators (EPUB, MP3, PDF)
+- **Pre-Download Size Transparency:** Download buttons display the exact or estimated file size beforehand (`Download MP3 (~370 MB)`, `Download EPUB (8.2 MB)`).
+- **EPUB Download:** Grab the original `.epub` file for your e-reader directly from the book detail card or the reading studio.
+- **MP3 Download:** Save audiobooks locally as standard `.mp3` files for offline listening in any media player.
+- **Print / Save as PDF:** Clean `@media print` layout formatting e-book chapters into publication-grade PDFs.
+
+### 5. 🔒 Secure Google SSO & Zero Password Storage
+- **Google Login via CDP (Chrome / Edge):** Connects through an isolated session in your installed browser for Google OAuth; immune to automated bot blocks.
+- **AES-256-GCM Encryption:** Session tokens are encrypted on disk with authenticated 256-bit AES-GCM (`.data/session.enc`).
+- **Zero Plaintext Passwords:** Credentials are never written to disk or client scripts. The browser receives only an `HttpOnly; SameSite=Strict` session cookie.
+
+### 6. 🎛️ Pro Audio Player & Seamless Mobile Sync
+- **Pick Up Where You Left Off:** Instant bi-directional position sync matches the exact second you reached on your phone (`sendBeacon` + periodic updates).
+- **Fine-Grained Speed Control:** Smooth playback rate adjustments from `0.5x` to `3.0x`.
+- **Sleep Timer:** 5–60 minute countdown or "Stop at Chapter End".
+- **OS Media Keys & Shortcuts:** Spacebar playback, `←/→` skipping, and native Web Media Session integration.
+
+---
+
+## Screenshots & Aesthetics
+
+| Light Editorial Theme | Charcoal Dark Theme |
 |:---:|:---:|
-| Sıcak krem (`#FAF7F2`) ve Storytel Turuncusu (`#FF5500`) | Göz yormayan koyu gri (`#141210`) ve yüksek kontrast |
+| Warm cream (`#FAF7F2`) with Storytel Orange accents (`#FF5500`) | Distraction-free charcoal (`#141210`) with crisp contrast |
 
-| Oku & Dinle (Split-Screen) | Kelime Defteri & Çeviri |
+| Split-Screen Read & Listen | Vocabulary Builder & Translation |
 |:---:|:---:|
-| Sol: E-kitap / PDF, Sağ: Sesli Kitap & Senkronizasyon | Çift tıkla sözlük, sesli telaffuz ve flashcard |
+| Left: E-book prose / PDF, Right: Synchronized Audio Player | Double-click dictionary, native audio pronunciation, and flashcards |
 
 ---
 
-## Hızlı Başlangıç (Kullanıcılar İçin)
+## Quick Start (For Users)
 
-### Gereksinimler
-- **Node.js 20+** (Node.js 22 veya 24 önerilir)
-- **Google Chrome** veya **Microsoft Edge** (Google ile giriş için)
-- **Aktif Storytel Aboneliği**
+### Prerequisites
+- **Node.js 20+** (Node.js 22 or 24 recommended)
+- **Google Chrome** or **Microsoft Edge** (for Google SSO)
+- **Active Storytel Subscription**
 
-### Kurulum ve Çalıştırma
+### Installation & Launch
 
 ```bash
-# 1. Depoyu klonlayın
+# 1. Clone the repository
 git clone https://github.com/onursercanyilmaz/storytel-client.git
 cd storytel-client
 
-# 2. Bağımlılıkları yükleyin
+# 2. Install dependencies
 npm install
 
-# 3. Üretim sürümünü derleyin ve başlatın
+# 3. Build and launch production server
 npm run build
 npm run start
 ```
 
-Tarayıcınızda **`http://127.0.0.1:3000`** adresini açın ve **Google ile Giriş Yap** butonuna tıklayın.
+Open **`http://127.0.0.1:3000`** in your browser and click **Sign in with Google**.
 
-> **PWA Masaüstü Uygulaması İpucu:**  
-> Chrome veya Edge adres çubuğundaki **"Uygulamayı Yükle"** simgesine tıklayarak uygulamayı Electron'un getirdiği 200+ MB RAM yükü olmadan bağımsız bir masaüstü penceresi olarak kullanabilirsiniz.
+> **PWA Desktop App Tip:**  
+> Click the **"Install App"** icon in your Chrome or Edge address bar to launch `storytel-client` as a native, borderless desktop window without Electron's 200+ MB RAM overhead.
 
 ---
 
-## Klavye Kısayolları
+## Keyboard Shortcuts
 
-| Tuş | İşlev |
+| Key | Action |
 |---|---|
-| `Space` | Oynat / Duraklat |
-| `←` | 15 saniye geri sar |
-| `→` | 30 saniye ileri sar |
-| `M` | Sesi kapat / aç (Mute) |
-| `Ctrl + K` / `Cmd + K` | Katalog içi hızlı arama penceresini aç |
-| Medya Tuşları | Oynat, duraklat, şarkı/bölüm atla |
+| `Space` | Play / Pause |
+| `←` | Rewind 15 seconds |
+| `→` | Forward 30 seconds |
+| `M` | Mute / Unmute |
+| `Ctrl + K` / `Cmd + K` | Focus universal catalog search |
+| Media Keys | Play, pause, previous/next track |
 
 ---
 
-## Geliştiriciler İçin Kılavuz (Developer Guide)
+## Developer Guide
 
-`storytel-client`, modern web standartları ve katı yerel güvenlik ilkeleriyle geliştirilmiştir.
+`storytel-client` is engineered around modern web standards, strict local privacy, and zero external runtime services.
 
-### Teknoloji Yığını & Mimari
+### Tech Stack & Architecture
 
 - **Framework:** Next.js 15.5 (App Router, Server Actions, Route Handlers)
 - **UI:** React 19, Tailwind CSS v4, Lucide Icons
-- **E-Kitap Ayrıştırıcı:** Sıfır harici bağımlılık! Node.js yerel `zlib` akışı ile hafıza dostu ZIP / EPUB ayrıştırma ve sanitize edilmiş HTML üretimi (`src/lib/epub-parser.ts`).
-- **Şifreleme Motoru:** Web Crypto & Node.js `crypto` modülü ile AES-256-GCM authenticated encryption (`src/lib/crypto.ts`).
-- **Storytel API Motoru:** Typed client, otomatik tek uçuşlu (single-flight) Firebase token yenileme (`securetoken.googleapis.com`), 401 retry döngüsü ve HTTP Range ses akış vekili (`src/lib/storytel/client.ts`).
-- **Veri Depolama:** `.data/` dizininde şifrelenmiş JSON depoları (`session.enc`, `vocabulary.json`, `collections.json`, `stats.json`).
+- **E-Book Parser:** Zero external dependencies. High-performance, streaming ZIP/EPUB extraction with sanitized HTML rendering using Node's native `zlib` (`src/lib/epub-parser.ts`).
+- **Cryptographic Engine:** Authenticated AES-256-GCM encryption powered by Web Crypto and Node `crypto` (`src/lib/crypto.ts`).
+- **Storytel API Client:** Fully typed client with single-flight Firebase token refreshes (`securetoken.googleapis.com`), 401 retry cycles, and HTTP Range streaming proxy (`src/lib/storytel/client.ts`).
+- **Local Storage:** Isolated, encrypted JSON vaults under `.data/` (`session.enc`, `vocabulary.json`, `collections.json`, `stats.json`).
 
-### Geliştirme Komutları
+### Development Commands
 
 ```bash
-npm run dev        # Geliştirici sunucusunu başlatır (Hot-reload)
-npm run build      # Next.js optimize üretim derlemesi
-npm run start      # Üretim sunucusunu 127.0.0.1:3000 üzerinde başlatır
-npm test           # 22 birim, güvenlik, kripto, mock API ve E2E testini çalıştırır
-npm run typecheck  # TypeScript tip denetimi (tsc --noEmit)
+npm run dev        # Starts hot-reloading development server
+npm run build      # Produces optimized Next.js production build
+npm run start      # Runs production server on 127.0.0.1:3000
+npm test           # Runs all 22 unit, cryptographic, mock API, and E2E test suites
+npm run typecheck  # Validates TypeScript types (tsc --noEmit)
 ```
 
-### Dizin Yapısı
+### Project Directory Structure
 
 ```text
 storytel-client/
 ├── src/
 │   ├── app/
 │   │   ├── api/
-│   │   │   ├── auth/              # Google SSO başlatma/durum/çıkış ve e-posta girişi
-│   │   │   ├── books/[id]/        # Kitap detayları, bölümler, yer imleri, formatlar
-│   │   │   ├── bookshelf/         # Kitaplık listeleme, ekleme, çıkarma
-│   │   │   ├── downloads/         # Çevrimdışı MP3 indirme yöneticisi & doğrudan dosya akışı
-│   │   │   │   └── [bookId]/file/ # Tarayıcı için doğrudan MP3 dosya indirme uç noktası
-│   │   │   ├── ebook/
-│   │   │   │   ├── [id]/          # Storytel Fastly CDN EPUB akışı ve ayrıştırma
-│   │   │   │   ├── [id]/download/ # Tarayıcı için doğrudan EPUB dosya indirme uç noktası
-│   │   │   │   └── parse/         # Kullanıcının yüklediği yerel EPUB dosyalarını ayrıştırma
-│   │   │   ├── search/            # Çok filtreli katalog araması
-│   │   │   ├── stream/[id]/       # HTTP Range destekli ses akış proxy'si
-│   │   │   └── vocabulary/        # Kelime defteri CRUD & MyMemory + GTX çok dilli çeviri
-│   │   │       └── lookup/        # Anında çok dilli kelime sorgulama uç noktası
-│   │   ├── globals.css            # Storytel açık ve koyu tema değişkenleri
-│   │   ├── layout.tsx             # Fontlar (Lora + Plus Jakarta Sans) ve PWA ayarları
-│   │   └── page.tsx               # Ana giriş sayfası
+│   │   │   ├── auth/              # Google SSO start/status/logout and credentials
+│   │   │   ├── books/[id]/        # Book metadata, chapters, bookmarks, and asset sizes
+│   │   │   ├── bookshelf/         # Bookshelf listing, additions, and removals
+│   │   │   ├── downloads/         # Offline MP3 download manager and stream delivery
+│   │   │   ├── ebook/             # Storytel EPUB streaming, parsing, and downloads
+│   │   │   ├── recommendations/   # Personalized library-based recommendation engine
+│   │   │   ├── search/            # Multi-filtered catalog search endpoint
+│   │   │   ├── stream/[id]/       # HTTP Range-compatible audio streaming proxy
+│   │   │   └── vocabulary/        # Vocabulary notebook CRUD & multi-engine translation
+│   │   ├── globals.css            # Storytel light & dark theme CSS variables
+│   │   ├── layout.tsx             # Typography (Lora + Plus Jakarta Sans) and PWA manifest
+│   │   └── page.tsx               # Entry page
 │   ├── components/
-│   │   ├── StorytelApp.tsx        # Ana kitaplık, hero kartı, sekme yönetimi
-│   │   ├── ReadAndListenView.tsx  # Bölünmüş ekran Oku & Dinle stüdyosu, sözlük popup'ı
-│   │   ├── VocabularyView.tsx     # Kelime defteri, flashcard'lar, telaffuz, Anki dışa aktarma
-│   │   ├── BookDetailModal.tsx    # Kitap özeti, MP3/EPUB indirme, bölüm listesi, yer imleri
-│   │   ├── PlayerBar.tsx          # Mini çalar ve tam ekran genişleyen oynatıcı
-│   │   ├── PlayerContext.tsx      # Ses motoru, Media Session ve konum senkronizasyonu
-│   │   └── SearchView.tsx         # Dil, kategori, süre ve format filtreli arama
+│   │   ├── StorytelApp.tsx        # Main library, hero card, navigation tabs
+│   │   ├── ReadAndListenView.tsx  # Split-screen Read & Listen studio & dictionary popup
+│   │   ├── VocabularyView.tsx     # Vocabulary notebook, flashcard decks, Anki export
+│   │   ├── BookDetailModal.tsx    # Modal with summary, size-badged MP3/EPUB downloads
+│   │   ├── PlayerBar.tsx          # Persistent mini-player and expanded drawer
+│   │   ├── PlayerContext.tsx      # Audio engine, Media Session API, position syncer
+│   │   └── SearchView.tsx         # Personalized recommendations and filtered search
 │   └── lib/
-│       ├── crypto.ts              # AES-256-GCM şifreleme ve URL log temizleme
-│       ├── session.ts             # Şifreli sunucu oturumu ve HttpOnly çerez yönetimi
-│       ├── epub-parser.ts         # Sıfır bağımlılıklı akışlı EPUB ayrıştırıcı
-│       ├── local-store.ts         # Beğeniler, özel koleksiyonlar, kelime defteri ve istatistikler
-│       ├── downloads.ts           # MP3 indirme işleyicisi
-│       └── storytel/              # Storytel API istemcisi ve TypeScript tipleri
-└── tests/                         # 22 kapsamlı test dosyası
+│       ├── crypto.ts              # AES-256-GCM encryption and URL sanitizer
+│       ├── session.ts             # Encrypted server session and HttpOnly cookie management
+│       ├── epub-parser.ts         # Zero-dependency streaming EPUB parser
+│       ├── local-store.ts         # Favorites, custom collections, vocabulary, and stats
+│       ├── downloads.ts           # MP3 background downloader
+│       └── storytel/              # Storytel API client and TypeScript interfaces
+└── tests/                         # 22 test suites covering crypto, parser, and E2E
 ```
 
-### Güvenlik Mimarisi Özeti
+### Security Architecture
 
-| Güvenlik Kuralı | Uygulama |
+| Security Measure | Implementation |
 |---|---|
-| **Yalnızca Localhost Bağlantısı** | Sunucu kesinlikle `127.0.0.1:3000` adresine bağlanır; yerel ağa (`0.0.0.0`) açılmaz. |
-| **AES-256-GCM Şifreleme** | Oturum token'ları `.data/session.enc` dosyasında 256-bit rastgele anahtar ile şifrelenir. |
-| **HttpOnly Çerez Koruması** | Storytel veya Firebase token'ları hiçbir zaman istemci tarafı JavaScript'e verilmez (`localStorage` kullanılmaz). |
-| **Sıfır Telemetri & Doğrudan İletişim** | Araya giren üçüncü taraf sunucu yoktur; istekler doğrudan `api.storytel.net`, `fastly-ng.storytel.net` ve Google Firebase uç noktalarına iletilir. |
+| **Localhost-Only Binding** | The server strictly binds to `127.0.0.1:3000`; never exposed to local networks (`0.0.0.0`). |
+| **AES-256-GCM Encryption** | Active tokens are encrypted on disk inside `.data/session.enc` with a 256-bit ephemeral key. |
+| **HttpOnly Cookie Isolation** | Storytel and Firebase tokens are never exposed to browser JavaScript (no `localStorage`). |
+| **Zero Telemetry & Direct API** | No third-party proxy; requests route directly between your machine and official Storytel / Google endpoints. |
 
 ---
 
-## Yasal Uyarı / Disclaimer
+## Disclaimer
 
-Bu yazılım **bağımsız, açık kaynaklı ve resmi olmayan bir istemcidir**. Storytel AB ile herhangi bir kurumsal bağlantısı, sponsorluğu veya ortaklığı bulunmamaktadır. Storytel ticari markaları ve telif hakları Storytel AB'ye aittir.
+This software is an **independent, open-source, unofficial desktop client**. It is not affiliated with, endorsed by, or sponsored by Storytel AB. All Storytel trademarks, service marks, and copyrighted content are the property of Storytel AB.
 
-Bu uygulamayı kullanabilmek için **geçerli ve aktif bir Storytel aboneliğine sahip olmanız yasal bir gerekliliktir**.
+To use this application, **you must possess a valid, active Storytel subscription**.
 
 ---
 
-## Lisans
+## License
 
 [MIT](LICENSE) © 2026 onursercanyilmaz
