@@ -88,3 +88,27 @@ test("listening stats accumulate daily seconds and deduplicate recent books", as
   assert.equal(stats.recentBooks.length, 1);
   assert.equal(stats.recentBooks[0].positionMs, 75000);
 });
+
+test("vocabulary builder supports add, deduplication, mastered toggle, and delete", async () => {
+  const { addVocabEntry, updateVocabEntry, deleteVocabEntry, getVocabulary } =
+    await import("../src/lib/local-store");
+
+  const entry = addVocabEntry({
+    word: "serendipity",
+    meaning: "şans eseri güzel bir şey bulma",
+    bookTitle: "1984",
+  });
+  assert.equal(entry.word, "serendipity");
+  assert.equal(entry.mastered, false);
+
+  // Adding same word (case-insensitive) updates rather than duplicating
+  addVocabEntry({ word: "Serendipity", meaning: "tesadüfi şans" });
+  assert.equal(getVocabulary().length, 1);
+  assert.equal(getVocabulary()[0].meaning, "tesadüfi şans");
+
+  const mastered = updateVocabEntry(entry.id, { mastered: true });
+  assert.equal(mastered?.mastered, true);
+
+  assert.equal(deleteVocabEntry(entry.id), true);
+  assert.equal(getVocabulary().length, 0);
+});

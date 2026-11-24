@@ -25,6 +25,7 @@ Built with Next.js App Router, React 19, TypeScript, and Tailwind CSS v4 — des
 - **Email & Password Fallback:** Optional legacy sign-in where your password is only used in-transit and **never written to disk**.
 - **Authentic Storytel UI + Light & Dark Themes:** Warm editorial cream (`#FAF7F2`) and charcoal dark (`#141210`) themes with Storytel orange (`#FF5500`), serif headings, square audiobook covers with format badges, and a featured **Continue Listening** hero card.
 - **Bilingual Interface (`TR` / `EN`):** Instant one-click Turkish and English language switching.
+- **Read & Listen Split-Screen Studio:** Open books that have both an e-book and audiobook side-by-side — read the e-book on the left (with Dark / Sepia / Light themes, Serif/Sans, font sizing, and optional **Audio Sync** auto-scroll) while listening & controlling chapters/bookmarks on the right. Also supports loading any local `.epub` file!
 - **Full-Featured Persistent & Expandable Player:**
   - HTTP `Range`-capable audio proxy for instant seeking (and automatic local playback when downloaded).
   - Expandable mobile-style full-screen player + slim mini player bar.

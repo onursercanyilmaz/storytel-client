@@ -3,6 +3,7 @@ export type BookStatus = "will_consume" | "consuming" | "consumed";
 export interface BookshelfBook {
   id: string; // consumableId
   abookId: string | null;
+  ebookId?: string | null;
   title: string;
   authors: string;
   narrators: string;
@@ -57,6 +58,9 @@ export interface BookBookmark {
 export interface BookDetailResponse {
   id: string;
   abookId: string | null;
+  ebookId?: string | null;
+  hasAbook?: boolean;
+  hasEbook?: boolean;
   title: string;
   authors: string;
   narrators: string;
@@ -112,4 +116,16 @@ export interface ListeningStats {
     positionMs: number;
     durationMs: number;
   }[];
+}
+
+export interface VocabEntry {
+  id: string;
+  word: string;
+  meaning: string;
+  phonetic?: string;
+  context?: string;
+  bookId?: string;
+  bookTitle?: string;
+  mastered: boolean;
+  createdAt: string;
 }

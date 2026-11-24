@@ -2,35 +2,58 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import {
+  BookOpen,
   Check,
   Loader2,
   Play,
   Plus,
-  Search,
   Sparkles,
 } from "lucide-react";
-import type { SearchResultBook } from "@/lib/storytel/types";
+import type { BookshelfBook, SearchResultBook } from "@/lib/storytel/types";
 import { formatDurationMs, getLanguageLabel } from "@/lib/format";
 import { usePlayer } from "./PlayerContext";
 import { usePreferences } from "./PreferencesContext";
 
 interface SearchViewProps {
-  initialQuery?: string;
+  query: string;
+  searchNonce: number;
   shelfBookIds: Set<string>;
   onAddToShelf: (bookId: string) => Promise<void>;
   onOpenDetail: (bookId: string) => void;
+  onOpenReadListen: (book: BookshelfBook) => void;
+}
+
+function searchBookToShelfBook(book: SearchResultBook): BookshelfBook {
+  return {
+    id: book.id,
+    abookId: book.hasAbook ? book.id : null,
+    ebookId: book.hasEbook ? book.id : null,
+    title: book.title,
+    authors: book.authors,
+    narrators: book.narrators,
+    coverUrl: book.coverUrl,
+    category: book.category,
+    language: book.language,
+    languageName: book.languageName,
+    status: "will_consume",
+    durationMs: book.durationMs,
+    positionMs: 0,
+    progress: 0,
+    hasEbook: book.hasEbook,
+  };
 }
 
 export default function SearchView({
-  initialQuery = "",
+  query,
+  searchNonce,
   shelfBookIds,
   onAddToShelf,
   onOpenDetail,
+  onOpenReadListen,
 }: SearchViewProps) {
   const { playBook } = usePlayer();
   const { t, lang } = usePreferences();
 
-  const [query, setQuery] = useState(initialQuery);
   const [results, setResults] = useState<SearchResultBook[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -38,44 +61,47 @@ export default function SearchView({
   const [addingId, setAddingId] = useState<string | null>(null);
 
   const [langFilter, setLangFilter] = useState<string>("all");
+  const [formatFilter, setFormatFilter] = useState<
+    "all" | "abook" | "ebook" | "both"
+  >("all");
   const [durationFilter, setDurationFilter] = useState<
     "all" | "short" | "medium" | "long"
   >("all");
   const [sortBy, setSortBy] = useState<"relevant" | "duration_asc" | "duration_desc">("relevant");
 
-  const runSearch = async (q: string) => {
-    const trimmed = q.trim();
+  useEffect(() => {
+    const trimmed = query.trim();
     if (!trimmed) return;
+    let active = true;
     setLoading(true);
     setHasSearched(true);
     setLangFilter("all");
+    setFormatFilter("all");
     setDurationFilter("all");
-    try {
-      const res = await fetch(`/api/search?q=${encodeURIComponent(trimmed)}`);
-      const data = await res.json();
-      const items: SearchResultBook[] = Array.isArray(data.results) ? data.results : [];
-      setResults(items);
-      setSelectedId(items[0]?.id ?? null);
-    } catch {
-      setResults([]);
-      setSelectedId(null);
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  useEffect(() => {
-    if (initialQuery && initialQuery !== query) {
-      setQuery(initialQuery);
-      void runSearch(initialQuery);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialQuery]);
+    fetch(`/api/search?q=${encodeURIComponent(trimmed)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (!active) return;
+        const items: SearchResultBook[] = Array.isArray(data.results)
+          ? data.results
+          : [];
+        setResults(items);
+        setSelectedId(items[0]?.id ?? null);
+      })
+      .catch(() => {
+        if (!active) return;
+        setResults([]);
+        setSelectedId(null);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    void runSearch(query);
-  };
+    return () => {
+      active = false;
+    };
+  }, [query, searchNonce]);
 
   const languageCounts = useMemo(() => {
     const counts = new Map<string, { label: string; count: number }>();
@@ -95,6 +121,9 @@ export default function SearchView({
   const filtered = useMemo(() => {
     const list = results.filter((r) => {
       if (langFilter !== "all" && r.language !== langFilter) return false;
+      if (formatFilter === "abook" && !r.hasAbook) return false;
+      if (formatFilter === "ebook" && !r.hasEbook) return false;
+      if (formatFilter === "both" && !(r.hasAbook && r.hasEbook)) return false;
       if (durationFilter !== "all" && r.durationMs > 0) {
         const hours = r.durationMs / 3600000;
         if (durationFilter === "short" && hours >= 5) return false;
@@ -112,7 +141,7 @@ export default function SearchView({
       return [...list].sort((a, b) => b.durationMs - a.durationMs);
     }
     return list;
-  }, [results, langFilter, durationFilter, sortBy]);
+  }, [results, langFilter, formatFilter, durationFilter, sortBy]);
 
   const selectedBook = useMemo(
     () => filtered.find((b) => b.id === selectedId) ?? filtered[0] ?? null,
@@ -121,32 +150,6 @@ export default function SearchView({
 
   return (
     <div className="space-y-5">
-      {/* Search Bar */}
-      <form onSubmit={handleSubmit} className="flex gap-2.5 max-w-2xl">
-        <div className="relative flex-1">
-          <Search className="w-4 h-4 st-muted absolute left-4 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={t("search.placeholder")}
-            className="w-full pl-11 pr-4 py-2.5 rounded-xl st-surface border st-border text-sm st-ink placeholder:text-[#737373] focus:outline-none focus:border-[#FF5500] transition"
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="px-5 py-2.5 rounded-xl st-accent-bg disabled:opacity-50 text-white text-sm font-semibold transition flex items-center gap-2 cursor-pointer"
-        >
-          {loading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Search className="w-4 h-4" />
-          )}
-          {t("search.button")}
-        </button>
-      </form>
-
       {loading ? (
         <div className="py-24 flex flex-col items-center gap-3 st-muted">
           <Loader2 className="w-7 h-7 text-[#FF5500] animate-spin" />
@@ -226,6 +229,47 @@ export default function SearchView({
                       <span className="px-1.5 py-0.5 rounded-full st-surface-alt text-[10px]">
                         {info.count}
                       </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-[11px] font-bold uppercase tracking-wider st-muted mb-2.5">
+                {lang === "tr" ? "FORMAT" : "FORMAT"}
+              </h3>
+              <div className="space-y-1">
+                {(
+                  [
+                    { id: "all", label: lang === "tr" ? "Tümü" : "All" },
+                    { id: "abook", label: lang === "tr" ? "Sesli Kitap" : "Audiobook" },
+                    { id: "ebook", label: lang === "tr" ? "E-Kitap" : "E-book" },
+                    { id: "both", label: lang === "tr" ? "Oku & Dinle" : "Read & Listen" },
+                  ] as const
+                ).map((opt) => {
+                  const active = formatFilter === opt.id;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setFormatFilter(opt.id)}
+                      className={`w-full px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-2 transition cursor-pointer ${
+                        active
+                          ? "st-accent-soft border border-[#FF5500]/40 st-ink"
+                          : "st-muted hover:st-ink hover:bg-white/5"
+                      }`}
+                    >
+                      <span
+                        className={`w-3.5 h-3.5 rounded flex items-center justify-center ${
+                          active
+                            ? "bg-[#FF5500] text-white"
+                            : "border st-border"
+                        }`}
+                      >
+                        {active && <Check className="w-2.5 h-2.5" />}
+                      </span>
+                      {opt.label}
                     </button>
                   );
                 })}
@@ -322,9 +366,16 @@ export default function SearchView({
 
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5 flex-wrap text-[10px]">
-                      <span className="px-1.5 py-0.5 rounded bg-[#FF5500]/15 text-[#FF5500] font-bold tracking-wide">
-                        AUDIOBOOK
-                      </span>
+                      {book.hasAbook && (
+                        <span className="px-1.5 py-0.5 rounded bg-[#FF5500]/15 text-[#FF5500] font-bold tracking-wide">
+                          AUDIOBOOK
+                        </span>
+                      )}
+                      {book.hasEbook && (
+                        <span className="px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-500 font-bold tracking-wide">
+                          EBOOK
+                        </span>
+                      )}
                       {book.language && (
                         <span className="px-1.5 py-0.5 rounded st-surface-alt st-ink font-semibold uppercase">
                           {book.language}
@@ -386,27 +437,51 @@ export default function SearchView({
                       </button>
                     )}
 
-                    <button
-                      type="button"
-                      onClick={() =>
-                        playBook({
-                          id: book.id,
-                          title: book.title,
-                          authors: book.authors,
-                          narrators: book.narrators,
-                          coverUrl: book.coverUrl,
-                          durationMs: book.durationMs,
-                        })
-                      }
-                      className={`px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 transition cursor-pointer ${
-                        isSelected
-                          ? "st-accent-bg text-white shadow-md shadow-[#FF5500]/25"
-                          : "st-surface-alt border st-border st-ink hover:border-[#FF5500]"
-                      }`}
-                    >
-                      <Play className="w-3 h-3 fill-current" />
-                      {t("search.listen")}
-                    </button>
+                    {book.hasEbook && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onOpenReadListen(searchBookToShelfBook(book))
+                        }
+                        className="px-3 py-1.5 rounded-full bg-emerald-500/15 hover:bg-emerald-500 text-emerald-500 hover:text-white text-xs font-bold flex items-center gap-1 transition cursor-pointer"
+                        title={
+                          book.hasAbook
+                            ? lang === "tr"
+                              ? "Oku & Dinle"
+                              : "Read & Listen"
+                            : lang === "tr"
+                              ? "E-Kitabı Oku"
+                              : "Read E-book"
+                        }
+                      >
+                        <BookOpen className="w-3 h-3" />
+                        {lang === "tr" ? "Oku" : "Read"}
+                      </button>
+                    )}
+
+                    {book.hasAbook && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          playBook({
+                            id: book.id,
+                            title: book.title,
+                            authors: book.authors,
+                            narrators: book.narrators,
+                            coverUrl: book.coverUrl,
+                            durationMs: book.durationMs,
+                          })
+                        }
+                        className={`px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 transition cursor-pointer ${
+                          isSelected
+                            ? "st-accent-bg text-white shadow-md shadow-[#FF5500]/25"
+                            : "st-surface-alt border st-border st-ink hover:border-[#FF5500]"
+                        }`}
+                      >
+                        <Play className="w-3 h-3 fill-current" />
+                        {t("search.listen")}
+                      </button>
+                    )}
                   </div>
                 </div>
               );
@@ -432,47 +507,75 @@ export default function SearchView({
                 <p className="text-sm st-muted mt-0.5">{selectedBook.authors}</p>
               </div>
 
-              <div className="grid grid-cols-2 gap-2.5">
-                <button
-                  type="button"
-                  onClick={() =>
-                    playBook({
-                      id: selectedBook.id,
-                      title: selectedBook.title,
-                      authors: selectedBook.authors,
-                      narrators: selectedBook.narrators,
-                      coverUrl: selectedBook.coverUrl,
-                      durationMs: selectedBook.durationMs,
-                    })
-                  }
-                  className="py-2.5 px-4 rounded-xl st-accent-bg text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-[#FF5500]/25 cursor-pointer"
-                >
-                  <Play className="w-3.5 h-3.5 fill-current" />
-                  {t("search.listen")}
-                </button>
+              <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-2.5">
+                  {selectedBook.hasAbook ? (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        playBook({
+                          id: selectedBook.id,
+                          title: selectedBook.title,
+                          authors: selectedBook.authors,
+                          narrators: selectedBook.narrators,
+                          coverUrl: selectedBook.coverUrl,
+                          durationMs: selectedBook.durationMs,
+                        })
+                      }
+                      className="py-2.5 px-4 rounded-xl st-accent-bg text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-[#FF5500]/25 cursor-pointer"
+                    >
+                      <Play className="w-3.5 h-3.5 fill-current" />
+                      {t("search.listen")}
+                    </button>
+                  ) : selectedBook.hasEbook ? (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        onOpenReadListen(searchBookToShelfBook(selectedBook))
+                      }
+                      className="py-2.5 px-4 rounded-xl st-accent-bg text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-[#FF5500]/25 cursor-pointer"
+                    >
+                      <BookOpen className="w-3.5 h-3.5" />
+                      {lang === "tr" ? "E-Kitabı Oku" : "Read E-book"}
+                    </button>
+                  ) : null}
 
-                {shelfBookIds.has(selectedBook.id) ? (
+                  {shelfBookIds.has(selectedBook.id) ? (
+                    <button
+                      type="button"
+                      onClick={() => onOpenDetail(selectedBook.id)}
+                      className="py-2.5 px-4 rounded-xl bg-emerald-500/15 text-emerald-500 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <Check className="w-3.5 h-3.5" />
+                      {t("search.onShelf")}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={addingId === selectedBook.id}
+                      onClick={async () => {
+                        setAddingId(selectedBook.id);
+                        await onAddToShelf(selectedBook.id);
+                        setAddingId(null);
+                      }}
+                      className="py-2.5 px-4 rounded-xl st-surface-alt border st-border hover:border-[#FF5500] st-ink text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      {t("detail.addShelf")}
+                    </button>
+                  )}
+                </div>
+
+                {selectedBook.hasAbook && selectedBook.hasEbook && (
                   <button
                     type="button"
-                    onClick={() => onOpenDetail(selectedBook.id)}
-                    className="py-2.5 px-4 rounded-xl bg-emerald-500/15 text-emerald-500 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                    onClick={() =>
+                      onOpenReadListen(searchBookToShelfBook(selectedBook))
+                    }
+                    className="w-full py-2.5 px-4 rounded-xl st-accent-soft border border-[#FF5500]/40 text-[#FF5500] hover:bg-[#FF5500] hover:text-white text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"
                   >
-                    <Check className="w-3.5 h-3.5" />
-                    {t("search.onShelf")}
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    disabled={addingId === selectedBook.id}
-                    onClick={async () => {
-                      setAddingId(selectedBook.id);
-                      await onAddToShelf(selectedBook.id);
-                      setAddingId(null);
-                    }}
-                    className="py-2.5 px-4 rounded-xl st-surface-alt border st-border hover:border-[#FF5500] st-ink text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    {t("detail.addShelf")}
+                    <BookOpen className="w-3.5 h-3.5" />
+                    {lang === "tr" ? "Oku & Dinle (Yan Yana)" : "Read & Listen (Split View)"}
                   </button>
                 )}
               </div>

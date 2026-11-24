@@ -20,6 +20,7 @@ export async function GET(
 
     const formats: any[] = Array.isArray(details?.formats) ? details.formats : [];
     const abook = formats.find((f) => f.type === "abook");
+    const ebook = formats.find((f) => f.type === "ebook");
     const dl = getDownloadStatus(id);
 
     const joinNames = (arr?: any[]) =>
@@ -43,6 +44,9 @@ export async function GET(
     return NextResponse.json({
       id,
       abookId: abook?.id ? String(abook.id) : null,
+      ebookId: ebook?.id ? String(ebook.id) : null,
+      hasAbook: !!abook,
+      hasEbook: !!ebook,
       title: String(details?.title || ""),
       authors: joinNames(details?.authors),
       narrators: joinNames(details?.narrators),

@@ -2,10 +2,15 @@ import crypto from "crypto";
 import fs from "fs";
 import path from "path";
 import { DATA_DIR, ensureDataDirs } from "./paths";
-import type { CustomCollection, ListeningStats } from "./storytel/types";
+import type {
+  CustomCollection,
+  ListeningStats,
+  VocabEntry,
+} from "./storytel/types";
 
 const LIBRARY_META_PATH = path.join(DATA_DIR, "library-meta.json");
 const STATS_PATH = path.join(DATA_DIR, "listening-stats.json");
+const VOCAB_PATH = path.join(DATA_DIR, "vocabulary.json");
 
 interface LibraryMetaData {
   favorites: string[];
@@ -168,4 +173,81 @@ export function recordListeningProgress(input: {
 
   writeJson(STATS_PATH, stats);
   return stats;
+}
+
+// --- Vocabulary Builder ---
+
+export function getVocabulary(): VocabEntry[] {
+  const list = readJson<VocabEntry[]>(VOCAB_PATH, []);
+  return Array.isArray(list) ? list : [];
+}
+
+export function addVocabEntry(input: {
+  word: string;
+  meaning: string;
+  phonetic?: string;
+  context?: string;
+  bookId?: string;
+  bookTitle?: string;
+}): VocabEntry {
+  const list = getVocabulary();
+  const normalized = input.word.trim();
+  const existing = list.find(
+    (v) => v.word.toLowerCase() === normalized.toLowerCase(),
+  );
+  if (existing) {
+    if (input.meaning.trim()) existing.meaning = input.meaning.trim();
+    if (input.context?.trim()) existing.context = input.context.trim();
+    if (input.phonetic?.trim()) existing.phonetic = input.phonetic.trim();
+    writeJson(VOCAB_PATH, list);
+    return existing;
+  }
+
+  const entry: VocabEntry = {
+    id: crypto.randomUUID(),
+    word: normalized,
+    meaning: input.meaning.trim(),
+    phonetic: input.phonetic?.trim() || undefined,
+    context: input.context?.trim() || undefined,
+    bookId: input.bookId,
+    bookTitle: input.bookTitle,
+    mastered: false,
+    createdAt: new Date().toISOString(),
+  };
+  list.unshift(entry);
+  writeJson(VOCAB_PATH, list);
+  return entry;
+}
+
+export function updateVocabEntry(
+  id: string,
+  patch: { word?: string; meaning?: string; context?: string; mastered?: boolean },
+): VocabEntry | null {
+  const list = getVocabulary();
+  const item = list.find((v) => v.id === id);
+  if (!item) return null;
+
+  if (typeof patch.word === "string" && patch.word.trim()) {
+    item.word = patch.word.trim();
+  }
+  if (typeof patch.meaning === "string") {
+    item.meaning = patch.meaning.trim();
+  }
+  if (typeof patch.context === "string") {
+    item.context = patch.context.trim();
+  }
+  if (typeof patch.mastered === "boolean") {
+    item.mastered = patch.mastered;
+  }
+
+  writeJson(VOCAB_PATH, list);
+  return item;
+}
+
+export function deleteVocabEntry(id: string): boolean {
+  const list = getVocabulary();
+  const next = list.filter((v) => v.id !== id);
+  if (next.length === list.length) return false;
+  writeJson(VOCAB_PATH, next);
+  return true;
 }

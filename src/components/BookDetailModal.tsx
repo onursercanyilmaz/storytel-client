@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import {
   Bookmark,
   BookmarkPlus,
+  BookOpen,
   Check,
   Clock,
   Download,
@@ -36,6 +37,7 @@ interface BookDetailModalProps {
   shelfBook?: BookshelfBook;
   collections: CustomCollection[];
   onClose: () => void;
+  onOpenReadListen?: (book: BookshelfBook) => void;
   onToggleFavorite: (bookId: string) => void;
   onToggleCollection: (collectionId: string, bookId: string) => void;
   onAddToShelf: (bookId: string) => Promise<void>;
@@ -48,13 +50,14 @@ export default function BookDetailModal({
   shelfBook,
   collections,
   onClose,
+  onOpenReadListen,
   onToggleFavorite,
   onToggleCollection,
   onAddToShelf,
   onRemoveFromShelf,
   onDownloadChange,
 }: BookDetailModalProps) {
-  const { t } = usePreferences();
+  const { t, lang } = usePreferences();
   const { playBook, currentBook, currentTime, refreshBookmarks } = usePlayer();
   const [detail, setDetail] = useState<BookDetailResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -132,6 +135,16 @@ export default function BookDetailModal({
   const durationMs = detail?.durationMs || shelfBook?.durationMs || 0;
   const positionMs = detail?.positionMs || shelfBook?.positionMs || 0;
   const abookId = detail?.abookId ?? shelfBook?.abookId ?? null;
+  const hasEbook = Boolean(
+    detail?.hasEbook ??
+      shelfBook?.hasEbook ??
+      detail?.ebookId ??
+      shelfBook?.ebookId,
+  );
+  const hasAbook = Boolean(
+    detail?.hasAbook ??
+      (abookId || shelfBook?.abookId || durationMs > 0),
+  );
 
   const handlePlay = (startSec?: number) => {
     void playBook(
@@ -279,14 +292,56 @@ export default function BookDetailModal({
 
             {/* Pill Actions */}
             <div className="flex flex-wrap items-center gap-2 mt-4">
-              <button
-                type="button"
-                onClick={() => handlePlay()}
-                className="px-5 py-2.5 rounded-full st-accent-bg text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-[#FF5500]/25 transition cursor-pointer"
-              >
-                <Play className="w-3.5 h-3.5 fill-current" />
-                {positionMs > 0 ? "Dinlemeye Devam Et" : "Dinle"}
-              </button>
+              {hasAbook && (
+                <button
+                  type="button"
+                  onClick={() => handlePlay()}
+                  className="px-5 py-2.5 rounded-full st-accent-bg text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-[#FF5500]/25 transition cursor-pointer"
+                >
+                  <Play className="w-3.5 h-3.5 fill-current" />
+                  {positionMs > 0 ? t("lib.continueListening") : t("search.listen")}
+                </button>
+              )}
+
+              {hasEbook && onOpenReadListen && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    onOpenReadListen(
+                      shelfBook ?? {
+                        id: bookId,
+                        abookId,
+                        ebookId: detail?.ebookId ?? null,
+                        title,
+                        authors,
+                        narrators,
+                        coverUrl,
+                        category: detail?.category || "",
+                        language: detail?.language || "",
+                        languageName: detail?.languageName || "",
+                        status: "will_consume",
+                        durationMs,
+                        positionMs,
+                        progress:
+                          durationMs > 0
+                            ? Math.round((positionMs / durationMs) * 100)
+                            : 0,
+                        hasEbook: true,
+                      },
+                    )
+                  }
+                  className="px-4 py-2.5 rounded-full st-accent-soft border border-[#FF5500]/40 text-[#FF5500] hover:bg-[#FF5500] hover:text-white text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
+                >
+                  <BookOpen className="w-3.5 h-3.5" />
+                  {hasAbook
+                    ? lang === "tr"
+                      ? "Oku & Dinle"
+                      : "Read & Listen"
+                    : lang === "tr"
+                      ? "E-Kitabı Oku"
+                      : "Read E-book"}
+                </button>
+              )}
 
               <button
                 type="button"

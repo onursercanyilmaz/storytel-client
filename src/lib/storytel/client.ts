@@ -377,6 +377,7 @@ export class StorytelClient {
       books.push({
         id: String(model.id),
         abookId: abook?.id ? String(abook.id) : null,
+        ebookId: ebook?.id ? String(ebook.id) : null,
         title: String(model.title ?? "İsimsiz Kitap"),
         authors: joinNames(model.authors),
         narrators: joinNames(model.narrators),
@@ -539,7 +540,7 @@ export class StorytelClient {
           const formats: any[] = Array.isArray(model.formats) ? model.formats : [];
           const abook = formats.find((f) => f.type === "abook");
           const ebook = formats.find((f) => f.type === "ebook");
-          if (!abook) continue;
+          if (!abook && !ebook) continue;
 
           seen.add(id);
           const { language, languageName } = extractLanguage(model, raw);
@@ -561,7 +562,7 @@ export class StorytelClient {
             ),
             durationMs: Number(abook?.durationInMilliseconds || 0),
             description: String(model.description || ""),
-            hasAbook: true,
+            hasAbook: !!abook,
             hasEbook: !!ebook,
             language,
             languageName,
@@ -592,7 +593,9 @@ export class StorytelClient {
             const book = item?.book || {};
             const abook = item?.abook || {};
             const ebook = item?.ebook || {};
-            if (!abook.id && !item.abook) continue;
+            const hasAbook = !!abook.id || !!item.abook;
+            const hasEbook = !!ebook.id || !!item.ebook;
+            if (!hasAbook && !hasEbook) continue;
 
             const id = String(
               book.consumableId || book.id || abook.id || item.id || "",
@@ -629,8 +632,8 @@ export class StorytelClient {
               ),
               durationMs,
               description: String(abook.description || ebook.description || ""),
-              hasAbook: true,
-              hasEbook: !!ebook.id || !!item.ebook,
+              hasAbook,
+              hasEbook,
               language,
               languageName,
             });
@@ -717,6 +720,71 @@ export class StorytelClient {
     throw new Error(
       `Ses akışı adresi alınamadı (HTTP ${res.status}). Kitap aboneliğinizde aktif olmayabilir.`,
     );
+  }
+
+  async getEbookDownloadUrl(
+    consumableId: string,
+    ebookId?: string | null,
+  ): Promise<string> {
+    const url = `https://api.storytel.net/assets/v2/consumables/${encodeURIComponent(consumableId)}/ebook`;
+    const res = await this.apiFetch(url, { method: "GET" }, false);
+    const rawLocation = res.headers.get("location");
+    if (rawLocation) {
+      const absUrl = rawLocation.startsWith("/")
+        ? new URL(rawLocation, "https://www.storytel.com").toString()
+        : rawLocation;
+      // Do not accept HTML web reader redirects as EPUB files
+      if (!absUrl.includes("/tr/ebook?") && !absUrl.includes("/ebook?")) {
+        return absUrl;
+      }
+    }
+    if (res.ok) {
+      try {
+        const data = (await res.json()) as { url?: string; downloadUrl?: string };
+        if (data?.url) return data.url;
+        if (data?.downloadUrl) return data.downloadUrl;
+      } catch {
+        // ignore non-json
+      }
+    }
+
+    const legacyToken = this.getLegacyToken();
+    const targetId = ebookId || consumableId;
+    if (legacyToken) {
+      const legacyUrls = [
+        `https://www.storytel.com/api/getEbook.action?ebookId=${encodeURIComponent(targetId)}&token=${encodeURIComponent(legacyToken)}`,
+      ];
+      for (const lUrl of legacyUrls) {
+        try {
+          const lRes = await fetch(lUrl, {
+            headers: STORYTEL_HEADERS,
+            redirect: "manual",
+            signal: AbortSignal.timeout(15000),
+          });
+          const rawLoc = lRes.headers.get("location");
+          if (rawLoc) {
+            const absLoc = rawLoc.startsWith("/")
+              ? new URL(rawLoc, "https://www.storytel.com").toString()
+              : rawLoc;
+            if (!absLoc.includes("/tr/ebook?") && !absLoc.includes("/ebook?")) {
+              return absLoc;
+            }
+          }
+        } catch {
+          // try next
+        }
+      }
+    }
+
+    const err: any = new Error(
+      res.status === 404
+        ? "Bu eserin Storytel üzerinde e-kitap sürümü bulunmuyor."
+        : res.status === 403
+          ? "Bu e-kitaba erişim için aktif Storytel aboneliği gereklidir."
+          : `E-kitap dosyası alınamadı (HTTP ${res.status}).`,
+    );
+    err.statusCode = res.status;
+    throw err;
   }
 
   async getPositionalBookmark(consumableId: string): Promise<number> {

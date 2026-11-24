@@ -154,10 +154,14 @@ test("StorytelClient single-flight Firebase refresh, 401 retry, bookshelf & sear
     assert.equal(bookshelfCalls, 2);
     assert.equal(firebaseCalls, 2); // initial + forced refresh on 401
 
-    // 2. Subsequent calls reuse cached Firebase token (no extra Firebase HTTP calls)
+    // 2. Subsequent calls reuse cached Firebase token & return both audiobooks and e-books
     const searchResults = await client.searchCatalog("1984");
-    assert.equal(searchResults.length, 1);
+    assert.equal(searchResults.length, 2);
     assert.equal(searchResults[0].id, "3001");
+    assert.equal(searchResults[0].hasAbook, true);
+    assert.equal(searchResults[1].id, "3002");
+    assert.equal(searchResults[1].hasEbook, true);
+    assert.equal(searchResults[1].hasAbook, false);
     assert.equal(firebaseCalls, 2);
 
     // 3. Audio stream returns 302 Location

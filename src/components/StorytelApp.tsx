@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   BarChart3,
+  BookMarked,
   BookOpen,
   CheckCircle2,
   Compass,
@@ -29,7 +30,9 @@ import { usePreferences } from "./PreferencesContext";
 import StorytelLogo from "./StorytelLogo";
 import PlayerBar from "./PlayerBar";
 import BookDetailModal from "./BookDetailModal";
+import ReadAndListenView from "./ReadAndListenView";
 import SearchView from "./SearchView";
+import VocabularyView from "./VocabularyView";
 import { DownloadsView, StatsView } from "./StatsAndDownloadsView";
 import { formatDurationMs } from "@/lib/format";
 
@@ -37,6 +40,7 @@ type ActiveNav =
   | { type: "library" }
   | { type: "search" }
   | { type: "favorites" }
+  | { type: "vocabulary" }
   | { type: "downloads" }
   | { type: "stats" }
   | { type: "collection"; id: string };
@@ -79,8 +83,12 @@ export default function StorytelApp({ email, onLogout }: StorytelAppProps) {
   const [libraryQuery, setLibraryQuery] = useState("");
 
   const [detailBookId, setDetailBookId] = useState<string | null>(null);
+  const [readListenBook, setReadListenBook] = useState<BookshelfBook | null>(
+    null,
+  );
   const [globalSearch, setGlobalSearch] = useState("");
   const [searchSubmitQuery, setSearchSubmitQuery] = useState("");
+  const [searchNonce, setSearchNonce] = useState(0);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const [showNewGroupModal, setShowNewGroupModal] = useState(false);
 
@@ -339,6 +347,7 @@ export default function StorytelApp({ email, onLogout }: StorytelAppProps) {
               e.preventDefault();
               if (!globalSearch.trim()) return;
               setSearchSubmitQuery(globalSearch.trim());
+              setSearchNonce((n) => n + 1);
               setNav({ type: "search" });
             }}
             className="flex-1 max-w-xl mx-2"
@@ -351,16 +360,24 @@ export default function StorytelApp({ email, onLogout }: StorytelAppProps) {
                 value={globalSearch}
                 onChange={(e) => setGlobalSearch(e.target.value)}
                 placeholder={t("search.placeholder")}
-                className="w-full pl-11 pr-20 py-2.5 rounded-full st-bg border st-border text-sm st-ink placeholder:text-[#8A847C] focus:outline-none focus:border-[#FF5500] focus:ring-2 focus:ring-[#FF5500]/15 transition"
+                className="w-full pl-11 pr-24 py-2.5 rounded-full st-bg border st-border text-sm st-ink placeholder:text-[#8A847C] focus:outline-none focus:border-[#FF5500] focus:ring-2 focus:ring-[#FF5500]/15 transition"
               />
               {globalSearch ? (
-                <button
-                  type="button"
-                  onClick={() => setGlobalSearch("")}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 rounded-full st-muted hover:st-ink cursor-pointer"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
+                <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setGlobalSearch("")}
+                    className="p-1.5 rounded-full st-muted hover:st-ink cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-3.5 py-1.5 rounded-full st-accent-bg text-white text-xs font-bold cursor-pointer transition"
+                  >
+                    {t("search.button")}
+                  </button>
+                </div>
               ) : (
                 <kbd className="hidden sm:inline-flex items-center absolute right-3.5 top-1/2 -translate-y-1/2 px-2 py-0.5 rounded-md st-surface border st-border text-[11px] st-muted font-mono pointer-events-none">
                   Ctrl K
@@ -441,6 +458,13 @@ export default function StorytelApp({ email, onLogout }: StorytelAppProps) {
                 count: favCount,
                 active: nav.type === "favorites",
                 target: { type: "favorites" } as ActiveNav,
+              },
+              {
+                id: "vocabulary",
+                label: lang === "tr" ? "Kelime Defterim" : "Vocabulary",
+                icon: BookMarked,
+                active: nav.type === "vocabulary",
+                target: { type: "vocabulary" } as ActiveNav,
               },
               {
                 id: "downloads",
@@ -556,6 +580,16 @@ export default function StorytelApp({ email, onLogout }: StorytelAppProps) {
                     <Play className="w-4 h-4 fill-current" />
                     {t("lib.continueListening")}
                   </button>
+                  {continueBook.hasEbook && (
+                    <button
+                      type="button"
+                      onClick={() => setReadListenBook(continueBook)}
+                      className="px-4 py-2.5 rounded-full st-accent-soft border border-[#FF5500]/40 text-[#FF5500] text-sm font-bold flex items-center gap-1.5 hover:bg-[#FF5500] hover:text-white transition cursor-pointer"
+                    >
+                      <BookOpen className="w-4 h-4" />
+                      {lang === "tr" ? "Oku & Dinle" : "Read & Listen"}
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={() => setDetailBookId(continueBook.id)}
@@ -584,7 +618,11 @@ export default function StorytelApp({ email, onLogout }: StorytelAppProps) {
                 ? t("search.title")
                 : nav.type === "favorites"
                   ? t("nav.favorites")
-                  : nav.type === "downloads"
+                  : nav.type === "vocabulary"
+                    ? lang === "tr"
+                      ? "Kelime Defterim"
+                      : "Vocabulary"
+                    : nav.type === "downloads"
                     ? t("nav.downloads")
                     : nav.type === "stats"
                       ? t("stats.title")
@@ -729,11 +767,15 @@ export default function StorytelApp({ email, onLogout }: StorytelAppProps) {
         {/* Active View */}
         {nav.type === "search" ? (
           <SearchView
-            initialQuery={searchSubmitQuery}
+            query={searchSubmitQuery}
+            searchNonce={searchNonce}
             shelfBookIds={shelfBookIds}
             onAddToShelf={handleAddToShelf}
             onOpenDetail={(id) => setDetailBookId(id)}
+            onOpenReadListen={(b) => setReadListenBook(b)}
           />
+        ) : nav.type === "vocabulary" ? (
+          <VocabularyView />
         ) : nav.type === "downloads" ? (
           <DownloadsView
             books={books}
@@ -804,11 +846,43 @@ export default function StorytelApp({ email, onLogout }: StorytelAppProps) {
                       )}
                     </button>
 
-                    {/* AUDIOBOOK Pill Badge (Bottom Left) */}
+                    {/* AUDIOBOOK / EBOOK Pill Badge (Bottom Left) */}
                     <div className="absolute bottom-2 left-2 flex items-center gap-1">
-                      <span className="px-2 py-0.5 rounded-md bg-black/75 backdrop-blur-sm text-white text-[10px] font-bold tracking-wider">
-                        AUDIOBOOK
-                      </span>
+                      {book.abookId || book.durationMs > 0 ? (
+                        <span className="px-2 py-0.5 rounded-md bg-black/75 backdrop-blur-sm text-white text-[10px] font-bold tracking-wider">
+                          AUDIOBOOK
+                        </span>
+                      ) : book.hasEbook ? (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setReadListenBook(book);
+                          }}
+                          className="px-2 py-0.5 rounded-md bg-[#FF5500] text-white text-[10px] font-bold tracking-wider flex items-center gap-1 cursor-pointer"
+                        >
+                          <BookOpen className="w-2.5 h-2.5" />
+                          EBOOK
+                        </button>
+                      ) : null}
+                      {(book.abookId || book.durationMs > 0) && book.hasEbook && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setReadListenBook(book);
+                          }}
+                          className="px-1.5 py-0.5 rounded-md bg-[#FF5500]/90 hover:bg-[#FF5500] text-white text-[10px] font-bold tracking-wider flex items-center gap-0.5 cursor-pointer"
+                          title={
+                            lang === "tr"
+                              ? "Oku & Dinle modunda aç"
+                              : "Open in Read & Listen mode"
+                          }
+                        >
+                          <BookOpen className="w-2.5 h-2.5" />
+                          +EBOOK
+                        </button>
+                      )}
                       {book.isDownloaded && (
                         <span
                           className="w-5 h-5 rounded-md bg-emerald-600/90 text-white flex items-center justify-center"
@@ -896,11 +970,23 @@ export default function StorytelApp({ email, onLogout }: StorytelAppProps) {
           shelfBook={detailShelfBook}
           collections={collections}
           onClose={() => setDetailBookId(null)}
+          onOpenReadListen={(b) => {
+            setDetailBookId(null);
+            setReadListenBook(b);
+          }}
           onToggleFavorite={handleToggleFavorite}
           onToggleCollection={handleToggleBookInCollection}
           onAddToShelf={handleAddToShelf}
           onRemoveFromShelf={handleRemoveFromShelf}
           onDownloadChange={() => void fetchBookshelf(true)}
+        />
+      )}
+
+      {/* Split-Screen Read & Listen Studio */}
+      {readListenBook && (
+        <ReadAndListenView
+          book={readListenBook}
+          onClose={() => setReadListenBook(null)}
         />
       )}
 
