@@ -2,19 +2,67 @@ import crypto from "crypto";
 import fs from "fs";
 import path from "path";
 import { DATA_DIR, ensureDataDirs } from "./paths";
+import { getActiveProfile, getProfileDir } from "./profiles";
 import type {
   CustomCollection,
   ListeningStats,
   VocabEntry,
 } from "./storytel/types";
 
-const LIBRARY_META_PATH = path.join(DATA_DIR, "library-meta.json");
-const STATS_PATH = path.join(DATA_DIR, "listening-stats.json");
-const VOCAB_PATH = path.join(DATA_DIR, "vocabulary.json");
-
 interface LibraryMetaData {
   favorites: string[];
   collections: CustomCollection[];
+}
+
+function getScopedMetaPath(profileId?: string): string {
+  const pid = profileId || getActiveProfile().id;
+  const dir = getProfileDir(pid);
+  const p = path.join(dir, "library-meta.json");
+  if (!fs.existsSync(p)) {
+    const legacy = path.join(DATA_DIR, "library-meta.json");
+    if (fs.existsSync(legacy)) {
+      try {
+        fs.copyFileSync(legacy, p);
+      } catch {}
+    }
+  }
+  return p;
+}
+
+function getScopedStatsPath(profileId?: string): string {
+  const pid = profileId || getActiveProfile().id;
+  const dir = getProfileDir(pid);
+  const p = path.join(dir, "listening-stats.json");
+  if (!fs.existsSync(p)) {
+    const legacy = path.join(DATA_DIR, "listening-stats.json");
+    if (fs.existsSync(legacy)) {
+      try {
+        fs.copyFileSync(legacy, p);
+      } catch {}
+    }
+  }
+  return p;
+}
+
+function getScopedVocabPath(profileId?: string): string {
+  const pid = profileId || getActiveProfile().id;
+  const dir = getProfileDir(pid);
+  const p = path.join(dir, "vocabulary.json");
+  if (!fs.existsSync(p)) {
+    const legacy = path.join(DATA_DIR, "vocabulary.json");
+    if (fs.existsSync(legacy)) {
+      try {
+        fs.copyFileSync(legacy, p);
+      } catch {}
+    }
+  }
+  return p;
+}
+
+function getScopedPositionsPath(profileId?: string): string {
+  const pid = profileId || getActiveProfile().id;
+  const dir = getProfileDir(pid);
+  return path.join(dir, "playback-positions.json");
 }
 
 function readJson<T>(filePath: string, fallback: T): T {
@@ -29,13 +77,16 @@ function readJson<T>(filePath: string, fallback: T): T {
 
 function writeJson<T>(filePath: string, data: T): void {
   ensureDataDirs();
+  const dir = path.dirname(filePath);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
 }
 
 // --- Favorites & Custom Collections ---
 
-export function getLibraryMeta(): LibraryMetaData {
-  const data = readJson<LibraryMetaData>(LIBRARY_META_PATH, {
+export function getLibraryMeta(profileId?: string): LibraryMetaData {
+  const p = getScopedMetaPath(profileId);
+  const data = readJson<LibraryMetaData>(p, {
     favorites: [],
     collections: [],
   });
@@ -45,15 +96,19 @@ export function getLibraryMeta(): LibraryMetaData {
   };
 }
 
-export function toggleFavorite(bookId: string): { isFavorite: boolean; favorites: string[] } {
-  const meta = getLibraryMeta();
+export function toggleFavorite(
+  bookId: string,
+  profileId?: string,
+): { isFavorite: boolean; favorites: string[] } {
+  const p = getScopedMetaPath(profileId);
+  const meta = getLibraryMeta(profileId);
   const exists = meta.favorites.includes(bookId);
   if (exists) {
     meta.favorites = meta.favorites.filter((id) => id !== bookId);
   } else {
     meta.favorites.unshift(bookId);
   }
-  writeJson(LIBRARY_META_PATH, meta);
+  writeJson(p, meta);
   return { isFavorite: !exists, favorites: meta.favorites };
 }
 
@@ -61,8 +116,10 @@ export function createCollection(
   name: string,
   color = "#ff5a1f",
   icon = "folder",
+  profileId?: string,
 ): CustomCollection {
-  const meta = getLibraryMeta();
+  const p = getScopedMetaPath(profileId);
+  const meta = getLibraryMeta(profileId);
   const collection: CustomCollection = {
     id: crypto.randomUUID(),
     name: name.trim(),
@@ -72,7 +129,7 @@ export function createCollection(
     createdAt: new Date().toISOString(),
   };
   meta.collections.push(collection);
-  writeJson(LIBRARY_META_PATH, meta);
+  writeJson(p, meta);
   return collection;
 }
 
@@ -86,8 +143,10 @@ export function updateCollection(
     removeBookId?: string;
     toggleBookId?: string;
   },
+  profileId?: string,
 ): CustomCollection | null {
-  const meta = getLibraryMeta();
+  const p = getScopedMetaPath(profileId);
+  const meta = getLibraryMeta(profileId);
   const col = meta.collections.find((c) => c.id === id);
   if (!col) return null;
 
@@ -114,23 +173,25 @@ export function updateCollection(
     }
   }
 
-  writeJson(LIBRARY_META_PATH, meta);
+  writeJson(p, meta);
   return col;
 }
 
-export function deleteCollection(id: string): boolean {
-  const meta = getLibraryMeta();
+export function deleteCollection(id: string, profileId?: string): boolean {
+  const p = getScopedMetaPath(profileId);
+  const meta = getLibraryMeta(profileId);
   const before = meta.collections.length;
   meta.collections = meta.collections.filter((c) => c.id !== id);
   if (meta.collections.length === before) return false;
-  writeJson(LIBRARY_META_PATH, meta);
+  writeJson(p, meta);
   return true;
 }
 
 // --- Listening Stats ---
 
-export function getListeningStats(): ListeningStats {
-  const data = readJson<ListeningStats>(STATS_PATH, {
+export function getListeningStats(profileId?: string): ListeningStats {
+  const p = getScopedStatsPath(profileId);
+  const data = readJson<ListeningStats>(p, {
     totalSeconds: 0,
     dailySeconds: {},
     recentBooks: [],
@@ -142,18 +203,22 @@ export function getListeningStats(): ListeningStats {
   };
 }
 
-export function recordListeningProgress(input: {
-  seconds: number;
-  book?: {
-    id: string;
-    title: string;
-    authors: string;
-    coverUrl: string;
-    positionMs: number;
-    durationMs: number;
-  };
-}): ListeningStats {
-  const stats = getListeningStats();
+export function recordListeningProgress(
+  input: {
+    seconds: number;
+    book?: {
+      id: string;
+      title: string;
+      authors: string;
+      coverUrl: string;
+      positionMs: number;
+      durationMs: number;
+    };
+  },
+  profileId?: string,
+): ListeningStats {
+  const p = getScopedStatsPath(profileId);
+  const stats = getListeningStats(profileId);
   const sec = Math.max(0, Math.min(300, Math.round(input.seconds)));
   if (sec > 0) {
     const today = new Date().toISOString().slice(0, 10);
@@ -169,28 +234,80 @@ export function recordListeningProgress(input: {
       },
       ...stats.recentBooks.filter((b) => b.id !== input.book!.id),
     ].slice(0, 20);
+
+    // Also persist position in profile-scoped positions store
+    saveProfilePosition(
+      input.book.id,
+      input.book.positionMs,
+      input.book.durationMs,
+      profileId,
+    );
   }
 
-  writeJson(STATS_PATH, stats);
+  writeJson(p, stats);
   return stats;
+}
+
+// --- Profile Playback Positions (Resume) ---
+
+export interface StoredPosition {
+  positionMs: number;
+  durationMs?: number;
+  updatedAt: string;
+}
+
+export function getAllProfilePositions(
+  profileId?: string,
+): Record<string, StoredPosition> {
+  const p = getScopedPositionsPath(profileId);
+  return readJson<Record<string, StoredPosition>>(p, {});
+}
+
+export function getProfilePosition(
+  bookId: string,
+  profileId?: string,
+): StoredPosition | null {
+  const dict = getAllProfilePositions(profileId);
+  return dict[bookId] || null;
+}
+
+export function saveProfilePosition(
+  bookId: string,
+  positionMs: number,
+  durationMs?: number,
+  profileId?: string,
+): void {
+  const p = getScopedPositionsPath(profileId);
+  const dict = getAllProfilePositions(profileId);
+  dict[bookId] = {
+    positionMs: Math.max(0, Math.round(positionMs)),
+    durationMs: durationMs ? Math.round(durationMs) : undefined,
+    updatedAt: new Date().toISOString(),
+  };
+  writeJson(p, dict);
 }
 
 // --- Vocabulary Builder ---
 
-export function getVocabulary(): VocabEntry[] {
-  const list = readJson<VocabEntry[]>(VOCAB_PATH, []);
+export function getVocabulary(profileId?: string): VocabEntry[] {
+  const p = getScopedVocabPath(profileId);
+  const list = readJson<VocabEntry[]>(p, []);
   return Array.isArray(list) ? list : [];
 }
 
-export function addVocabEntry(input: {
-  word: string;
-  meaning: string;
-  phonetic?: string;
-  context?: string;
-  bookId?: string;
-  bookTitle?: string;
-}): VocabEntry {
-  const list = getVocabulary();
+export function addVocabEntry(
+  input: {
+    word: string;
+    meaning: string;
+    phonetic?: string;
+    context?: string;
+    bookId?: string;
+    bookTitle?: string;
+  },
+  profileId?: string,
+): VocabEntry {
+  const p = getScopedVocabPath(profileId);
+  const list = getVocabulary(profileId);
   const normalized = input.word.trim();
   const existing = list.find(
     (v) => v.word.toLowerCase() === normalized.toLowerCase(),
@@ -199,7 +316,7 @@ export function addVocabEntry(input: {
     if (input.meaning.trim()) existing.meaning = input.meaning.trim();
     if (input.context?.trim()) existing.context = input.context.trim();
     if (input.phonetic?.trim()) existing.phonetic = input.phonetic.trim();
-    writeJson(VOCAB_PATH, list);
+    writeJson(p, list);
     return existing;
   }
 
@@ -215,15 +332,17 @@ export function addVocabEntry(input: {
     createdAt: new Date().toISOString(),
   };
   list.unshift(entry);
-  writeJson(VOCAB_PATH, list);
+  writeJson(p, list);
   return entry;
 }
 
 export function updateVocabEntry(
   id: string,
   patch: { word?: string; meaning?: string; context?: string; mastered?: boolean },
+  profileId?: string,
 ): VocabEntry | null {
-  const list = getVocabulary();
+  const p = getScopedVocabPath(profileId);
+  const list = getVocabulary(profileId);
   const item = list.find((v) => v.id === id);
   if (!item) return null;
 
@@ -240,14 +359,15 @@ export function updateVocabEntry(
     item.mastered = patch.mastered;
   }
 
-  writeJson(VOCAB_PATH, list);
+  writeJson(p, list);
   return item;
 }
 
-export function deleteVocabEntry(id: string): boolean {
-  const list = getVocabulary();
+export function deleteVocabEntry(id: string, profileId?: string): boolean {
+  const p = getScopedVocabPath(profileId);
+  const list = getVocabulary(profileId);
   const next = list.filter((v) => v.id !== id);
   if (next.length === list.length) return false;
-  writeJson(VOCAB_PATH, next);
+  writeJson(p, next);
   return true;
 }

@@ -15,6 +15,7 @@ import type { BookshelfBook, SearchResultBook } from "@/lib/storytel/types";
 import { formatDurationMs, getLanguageLabel } from "@/lib/format";
 import { usePlayer } from "./PlayerContext";
 import { usePreferences } from "./PreferencesContext";
+import { useProfiles } from "./ProfileContext";
 
 interface SearchViewProps {
   query: string;
@@ -59,6 +60,7 @@ export default function SearchView({
 }: SearchViewProps) {
   const { playBook } = usePlayer();
   const { t, lang } = usePreferences();
+  const { activeProfile } = useProfiles();
 
   const [results, setResults] = useState<SearchResultBook[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -177,6 +179,11 @@ export default function SearchView({
           return false;
         if (durationFilter === "long" && hours <= 15) return false;
       }
+      if (activeProfile?.isKid) {
+        const cat = (r.category || "").toLowerCase();
+        const sensitive = ["korku", "gerilim", "erotik", "cinayet", "suç", "horror", "thriller"];
+        if (sensitive.some((s) => cat.includes(s))) return false;
+      }
       return true;
     });
 
@@ -196,6 +203,25 @@ export default function SearchView({
 
   return (
     <div className="space-y-5">
+      {activeProfile?.isKid && (
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-between gap-3 text-emerald-500">
+          <div className="flex items-center gap-2.5">
+            <span className="text-2xl">👦</span>
+            <div>
+              <div className="text-xs sm:text-sm font-bold text-emerald-400 flex items-center gap-1.5">
+                <span>Çocuk Modu Aktif ({activeProfile.name})</span>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-extrabold">
+                  🛡️ Güvenli Arama
+                </span>
+              </div>
+              <div className="text-[11px] text-emerald-500/80 mt-0.5">
+                Korku, gerilim ve yetişkin içerikleri gizlenir; masallar, eğitici ve çocuk kitapları önceliklendirilir.
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {loading ? (
         <div className="py-24 flex flex-col items-center gap-3 st-muted">
           <Loader2 className="w-7 h-7 text-[#FF5500] animate-spin" />

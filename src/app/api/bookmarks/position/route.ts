@@ -24,6 +24,9 @@ export async function PUT(request: Request) {
       parsed.data.positionMs,
       DEVICE_ID,
     );
+    // Also save into active profile's local store for instant per-profile resume
+    const { saveProfilePosition } = await import("@/lib/local-store");
+    saveProfilePosition(parsed.data.consumableId, parsed.data.positionMs);
     return NextResponse.json({ ok: true });
   } catch (err) {
     return handleApiError(err);

@@ -29,6 +29,8 @@ import { toPlayingBook, usePlayer } from "./PlayerContext";
 import { usePreferences } from "./PreferencesContext";
 import StorytelLogo from "./StorytelLogo";
 import PlayerBar from "./PlayerBar";
+import ProfileDropdown from "./ProfileDropdown";
+import ProfilePickerModal from "./ProfilePickerModal";
 import BookDetailModal from "./BookDetailModal";
 import ReadAndListenView from "./ReadAndListenView";
 import SearchView from "./SearchView";
@@ -143,6 +145,17 @@ export default function StorytelApp({ email, onLogout }: StorytelAppProps) {
 
   useEffect(() => {
     void fetchBookshelf();
+  }, [fetchBookshelf]);
+
+  // When active profile switches, reload bookshelf, positions & collections
+  useEffect(() => {
+    const onProfileSwitched = () => {
+      void fetchBookshelf(true);
+    };
+    window.addEventListener("profile-switched", onProfileSwitched);
+    return () => {
+      window.removeEventListener("profile-switched", onProfileSwitched);
+    };
   }, [fetchBookshelf]);
 
   const shelfBookIds = useMemo(() => new Set(books.map((b) => b.id)), [books]);
@@ -411,25 +424,7 @@ export default function StorytelApp({ email, onLogout }: StorytelAppProps) {
               )}
             </button>
 
-            <div
-              className="flex items-center gap-1.5 pl-1.5 pr-2 py-1 rounded-full st-bg border st-border"
-              title={email || "Storytel"}
-            >
-              <span className="w-7 h-7 rounded-full st-accent-bg text-white text-xs font-bold flex items-center justify-center uppercase shrink-0">
-                {(email || "S").charAt(0)}
-              </span>
-              <span className="hidden xl:inline text-xs font-semibold st-ink max-w-[140px] truncate">
-                {email?.split("@")[0] || "Storytel"}
-              </span>
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="p-1.5 rounded-full st-muted hover:text-red-500 transition cursor-pointer"
-                title={t("nav.logout")}
-              >
-                <LogOut className="w-3.5 h-3.5" />
-              </button>
-            </div>
+            <ProfileDropdown email={email} onLogout={handleLogout} />
           </div>
         </div>
 
@@ -1063,6 +1058,9 @@ export default function StorytelApp({ email, onLogout }: StorytelAppProps) {
           </form>
         </div>
       )}
+
+      {/* Netflix-style Profile Picker & Manager Modal */}
+      <ProfilePickerModal />
 
       {/* Toast */}
       {toast && (

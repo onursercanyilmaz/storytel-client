@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { PreferencesProvider } from "@/components/PreferencesContext";
+import { ProfileProvider } from "@/components/ProfileContext";
 import { PlayerProvider } from "@/components/PlayerContext";
 import LoginView from "@/components/LoginView";
 import StorytelApp from "@/components/StorytelApp";
@@ -54,15 +55,17 @@ function AppRoot() {
   }
 
   return (
-    <PlayerProvider>
-      <StorytelApp
-        email={auth.email}
-        authMode={auth.authMode}
-        onLogout={() =>
-          setAuth({ authenticated: false, email: "", authMode: "sso" })
-        }
-      />
-    </PlayerProvider>
+    <ProfileProvider>
+      <PlayerProvider>
+        <StorytelApp
+          email={auth.email}
+          authMode={auth.authMode}
+          onLogout={() =>
+            setAuth({ authenticated: false, email: "", authMode: "sso" })
+          }
+        />
+      </PlayerProvider>
+    </ProfileProvider>
   );
 }
 
