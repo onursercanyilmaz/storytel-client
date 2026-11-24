@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>storytel-client — Your audiobooks. On your desktop.</title>
+    <meta
+      name="description"
+      content="Security-first, open-source unofficial Storytel desktop web & PWA audiobook client with Google SSO, offline MP3 downloads, custom collections, and Storytel-inspired Light & Dark UI."
+    />
+    <meta property="og:title" content="storytel-client — Your audiobooks. On your desktop." />
+    <meta
+      property="og:description"
+      content="Security-first open-source Storytel web & PWA client with Google SSO, AES-256-GCM encrypted sessions, offline MP3s, and custom groups."
+    />
+    <meta property="og:image" content="banner.jpg" />
+    <meta property="og:type" content="website" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lora:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="hero-glow" aria-hidden="true"></div>
+
+    <!-- Navbar -->
+    <header class="navbar">
+      <div class="container navbar-inner">
+        <a href="#" class="brand">
+          <img src="favicon.svg" alt="storytel-client" />
+          <span>storytel-client</span>
+        </a>
+
+        <nav class="nav-links">
+          <a href="#features" data-i18n="nav.features">Features</a>
+          <a href="#security" data-i18n="nav.security">Security</a>
+          <a href="#quickstart" data-i18n="nav.quickstart">Quick Start</a>
+        </nav>
+
+        <div class="nav-actions">
+          <button id="langToggle" class="lang-btn" type="button">TR / EN</button>
+          <a
+            href="#quickstart"
+            class="btn btn-primary btn-sm"
+            data-i18n="nav.getStarted"
+          >
+            Get Started
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero">
+      <div class="container">
+        <div class="pill">
+          <span class="pill-dot"></span>
+          <span data-i18n="hero.badge">Open Source · MIT · Next.js 15 &amp; PWA</span>
+        </div>
+
+        <h1 data-i18n="hero.title">
+          Your audiobooks.<br /><span>On your desktop.</span>
+        </h1>
+
+        <p class="lead" data-i18n="hero.lead">
+          A fast, security-first unofficial Storytel client built for desktop browsers and PWA. Sign in with Google SSO, organize custom groups, download offline MP3s, and sync seamlessly with your phone.
+        </p>
+
+        <div class="hero-cta">
+          <a href="#quickstart" class="btn btn-primary" data-i18n="hero.ctaPrimary">
+            Install Locally (Free)
+          </a>
+          <a
+            href="https://github.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn btn-secondary"
+            data-i18n="hero.ctaGithub"
+          >
+            View Source on GitHub
+          </a>
+        </div>
+
+        <div class="showcase-frame">
+          <img
+            src="banner.jpg"
+            alt="storytel-client desktop audiobook player interface"
+          />
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section id="features" class="section">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-kicker" data-i18n="feat.kicker">Features</div>
+          <h2 data-i18n="feat.title">Everything in the mobile app — and more.</h2>
+          <p data-i18n="feat.desc">
+            Designed with Storytel's clean aesthetic in both Dark and Warm Light themes, without Electron's 200 MB memory footprint.
+          </p>
+        </div>
+
+        <div class="grid-3">
+          <article class="card">
+            <div class="card-icon">🔐</div>
+            <h3 data-i18n="feat.f1.t">One-Click Google SSO</h3>
+            <p data-i18n="feat.f1.d">
+              Opens your real Chrome or Edge browser in an isolated profile with zero automation flags, so Google OAuth never blocks your sign-in.
+            </p>
+          </article>
+
+          <article class="card">
+            <div class="card-icon">🎧</div>
+            <h3 data-i18n="feat.f2.t">Pro Audiobook Player</h3>
+            <p data-i18n="feat.f2.d">
+              HTTP Range streaming for instant seeking, 0.5x–3.0x speed, sleep timer (minutes or end of chapter), chapters, bookmarks, and hardware media keys.
+            </p>
+          </article>
+
+          <article class="card">
+            <div class="card-icon">🔎</div>
+            <h3 data-i18n="feat.f3.t">3-Column Smart Search</h3>
+            <p data-i18n="feat.f3.d">
+              Filter Storytel's catalog by language, duration, and category with a live preview pane and one-click Add to Library or Play.
+            </p>
+          </article>
+
+          <article class="card">
+            <div class="card-icon">🗂️</div>
+            <h3 data-i18n="feat.f4.t">Custom Groups &amp; Favorites</h3>
+            <p data-i18n="feat.f4.d">
+              Go beyond the default shelf: like audiobooks and organize them into color-coded custom collections like Sci-Fi, Bedtime, or Commute.
+            </p>
+          </article>
+
+          <article class="card">
+            <div class="card-icon">⬇️</div>
+            <h3 data-i18n="feat.f5.t">Offline MP3 Downloads</h3>
+            <p data-i18n="feat.f5.d">
+              Download books locally with live progress tracking. Downloaded audiobooks automatically stream from your local disk with zero buffering.
+            </p>
+          </article>
+
+          <article class="card">
+            <div class="card-icon">📊</div>
+            <h3 data-i18n="feat.f6.t">Stats, Themes &amp; TR/EN</h3>
+            <p data-i18n="feat.f6.d">
+              Track your 7-day listening activity, switch between Dark and Warm Light themes, toggle Turkish/English UI, and install as a native PWA.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Security -->
+    <section id="security" class="section">
+      <div class="container">
+        <div class="security-box">
+          <div class="section-header" style="margin-bottom: 34px">
+            <div class="section-kicker" data-i18n="sec.kicker">Security First</div>
+            <h2 data-i18n="sec.title">Built so your credentials stay yours.</h2>
+            <p data-i18n="sec.desc">
+              Unlike legacy unofficial clients that store reversible passwords in plain JSON, every layer here is hardened by default.
+            </p>
+          </div>
+
+          <div class="security-grid">
+            <div class="sec-item">
+              <div class="sec-check">✓</div>
+              <div>
+                <h4 data-i18n="sec.s1.t">AES-256-GCM Encrypted Sessions</h4>
+                <p data-i18n="sec.s1.d">
+                  Session tokens are encrypted at rest with a randomly generated 256-bit key on your machine. Tampered files are automatically rejected.
+                </p>
+              </div>
+            </div>
+
+            <div class="sec-item">
+              <div class="sec-check">✓</div>
+              <div>
+                <h4 data-i18n="sec.s2.t">Zero Password Persistence</h4>
+                <p data-i18n="sec.s2.d">
+                  With Google SSO, no password is ever entered into the app. Even with email login, passwords are never saved to disk or cookies.
+                </p>
+              </div>
+            </div>
+
+            <div class="sec-item">
+              <div class="sec-check">✓</div>
+              <div>
+                <h4 data-i18n="sec.s3.t">Localhost-Only (127.0.0.1) &amp; HttpOnly</h4>
+                <p data-i18n="sec.s3.d">
+                  Strictly bound to 127.0.0.1 — never exposed on your LAN. Raw tokens never touch browser localStorage.
+                </p>
+              </div>
+            </div>
+
+            <div class="sec-item">
+              <div class="sec-check">✓</div>
+              <div>
+                <h4 data-i18n="sec.s4.t">Direct Traffic · Zero Telemetry</h4>
+                <p data-i18n="sec.s4.d">
+                  No analytics, no tracking, no third-party servers. Requests go directly from your machine to Storytel's official endpoints.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick Start -->
+    <section id="quickstart" class="section">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-kicker" data-i18n="qs.kicker">Quick Start</div>
+          <h2 data-i18n="qs.title">Up and running in 30 seconds.</h2>
+          <p data-i18n="qs.desc">
+            Requires Node.js 22+ and Chrome or Edge installed. Open http://127.0.0.1:3000 and optionally click "Install App" in the address bar for a standalone desktop window.
+          </p>
+        </div>
+
+        <div class="terminal">
+          <div class="terminal-bar">
+            <div class="dots">
+              <span></span><span></span><span></span>
+            </div>
+            <button id="copyBtn" class="copy-btn" type="button">Copy</button>
+          </div>
+          <pre id="quickStartCode"><span class="cmd-comment"># Clone &amp; install</span>
+git clone https://github.com/&lt;your-username&gt;/storytel-client.git
+cd storytel-client
+npm install
+
+<span class="cmd-comment"># Build &amp; launch on http://127.0.0.1:3000</span>
+npm run build
+<span class="cmd-accent">npm run start</span></pre>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="container">
+        <p><strong>storytel-client</strong> · MIT License · Open Source</p>
+        <p data-i18n="footer.disclaimer">
+          Unofficial client for personal use. Not affiliated with or endorsed by Storytel AB.
+        </p>
+      </div>
+    </footer>
+
+    <script>
+      const i18n = {
+        en: {
+          "nav.features": "Features",
+          "nav.security": "Security",
+          "nav.quickstart": "Quick Start",
+          "nav.getStarted": "Get Started",
+          "hero.badge": "Open Source · MIT · Next.js 15 & PWA",
+          "hero.title": "Your audiobooks.<br /><span>On your desktop.</span>",
+          "hero.lead":
+            "A fast, security-first unofficial Storytel client built for desktop browsers and PWA. Sign in with Google SSO, organize custom groups, download offline MP3s, and sync seamlessly with your phone.",
+          "hero.ctaPrimary": "Install Locally (Free)",
+          "hero.ctaGithub": "View Source on GitHub",
+          "feat.kicker": "Features",
+          "feat.title": "Everything in the mobile app — and more.",
+          "feat.desc":
+            "Designed with Storytel's clean aesthetic in both Dark and Warm Light themes, without Electron's 200 MB memory footprint.",
+          "feat.f1.t": "One-Click Google SSO",
+          "feat.f1.d":
+            "Opens your real Chrome or Edge browser in an isolated profile with zero automation flags, so Google OAuth never blocks your sign-in.",
+          "feat.f2.t": "Pro Audiobook Player",
+          "feat.f2.d":
+            "HTTP Range streaming for instant seeking, 0.5x–3.0x speed, sleep timer (minutes or end of chapter), chapters, bookmarks, and hardware media keys.",
+          "feat.f3.t": "3-Column Smart Search",
+          "feat.f3.d":
+            "Filter Storytel's catalog by language, duration, and category with a live preview pane and one-click Add to Library or Play.",
+          "feat.f4.t": "Custom Groups & Favorites",
+          "feat.f4.d":
+            "Go beyond the default shelf: like audiobooks and organize them into color-coded custom collections like Sci-Fi, Bedtime, or Commute.",
+          "feat.f5.t": "Offline MP3 Downloads",
+          "feat.f5.d":
+            "Download books locally with live progress tracking. Downloaded audiobooks automatically stream from your local disk with zero buffering.",
+          "feat.f6.t": "Stats, Themes & TR/EN",
+          "feat.f6.d":
+            "Track your 7-day listening activity, switch between Dark and Warm Light themes, toggle Turkish/English UI, and install as a native PWA.",
+          "sec.kicker": "Security First",
+          "sec.title": "Built so your credentials stay yours.",
+          "sec.desc":
+            "Unlike legacy unofficial clients that store reversible passwords in plain JSON, every layer here is hardened by default.",
+          "sec.s1.t": "AES-256-GCM Encrypted Sessions",
+          "sec.s1.d":
+            "Session tokens are encrypted at rest with a randomly generated 256-bit key on your machine. Tampered files are automatically rejected.",
+          "sec.s2.t": "Zero Password Persistence",
+          "sec.s2.d":
+            "With Google SSO, no password is ever entered into the app. Even with email login, passwords are never saved to disk or cookies.",
+          "sec.s3.t": "Localhost-Only (127.0.0.1) & HttpOnly",
+          "sec.s3.d":
+            "Strictly bound to 127.0.0.1 — never exposed on your LAN. Raw tokens never touch browser localStorage.",
+          "sec.s4.t": "Direct Traffic · Zero Telemetry",
+          "sec.s4.d":
+            "No analytics, no tracking, no third-party servers. Requests go directly from your machine to Storytel's official endpoints.",
+          "qs.kicker": "Quick Start",
+          "qs.title": "Up and running in 30 seconds.",
+          "qs.desc":
+            'Requires Node.js 22+ and Chrome or Edge installed. Open http://127.0.0.1:3000 and optionally click "Install App" in the address bar for a standalone desktop window.',
+          "footer.disclaimer":
+            "Unofficial client for personal use. Not affiliated with or endorsed by Storytel AB.",
+        },
+        tr: {
+          "nav.features": "Özellikler",
+          "nav.security": "Güvenlik",
+          "nav.quickstart": "Hızlı Başlangıç",
+          "nav.getStarted": "Başla",
+          "hero.badge": "Açık Kaynak · MIT · Next.js 15 & PWA",
+          "hero.title": "Sesli kitapların.<br /><span>Artık masaüstünde.</span>",
+          "hero.lead":
+            "Masaüstü tarayıcılar ve PWA için güvenlik odaklı, hızlı ve açık kaynaklı Storytel istemcisi. Google ile tek tıkla giriş yap, özel gruplar oluştur, çevrimdışı MP3 indir ve telefonunla senkronize dinle.",
+          "hero.ctaPrimary": "Yerelde Kur (Ücretsiz)",
+          "hero.ctaGithub": "GitHub'da İncele",
+          "feat.kicker": "Özellikler",
+          "feat.title": "Mobil uygulamadaki her şey — ve daha fazlası.",
+          "feat.desc":
+            "Electron'un 200 MB RAM yükü olmadan, hem Koyu hem Sıcak Açık Storytel temasıyla modern masaüstü deneyimi.",
+          "feat.f1.t": "Tek Tıkla Google SSO",
+          "feat.f1.d":
+            "Bilgisayarındaki gerçek Chrome veya Edge'i izole profilde otomasyon bayrağı olmadan açar; Google OAuth engeline takılmaz.",
+          "feat.f2.t": "Gelişmiş Sesli Kitap Oynatıcı",
+          "feat.f2.d":
+            "Anında sarma (HTTP Range), 0.5x–3.0x hız, uyku zamanlayıcısı (dakika veya bölüm sonu), bölümler, yer imleri ve medya tuşu desteği.",
+          "feat.f3.t": "3 Sütunlu Akıllı Arama",
+          "feat.f3.d":
+            "Storytel kataloğunu dil, süre ve kategoriye göre filtrele; canlı önizleme panelinden tek tıkla kitaplığa ekle veya dinle.",
+          "feat.f4.t": "Özel Gruplar & Beğeniler",
+          "feat.f4.d":
+            "Klasik kitaplığın ötesine geç: kitapları beğen ve Bilim Kurgu, Uyurken veya İş Yolunda gibi renkli özel gruplara ayır.",
+          "feat.f5.t": "Çevrimdışı MP3 İndirme",
+          "feat.f5.d":
+            "Kitapları canlı ilerleme takibiyle bilgisayarına indir. İndirilen kitaplar doğrudan diskten takılmadan oynatılır.",
+          "feat.f6.t": "İstatistik, Tema & TR/EN",
+          "feat.f6.d":
+            "7 günlük dinleme grafiğini gör, Koyu/Açık tema ve Türkçe/İngilizce dil seç, tarayıcıdan PWA olarak masaüstüne sabitle.",
+          "sec.kicker": "Önce Güvenlik",
+          "sec.title": "Hesap bilgilerin yalnızca sende kalır.",
+          "sec.desc":
+            "Şifreleri düz JSON'da saklayan eski istemcilerin aksine her katman varsayılan olarak şifreli ve izoledir.",
+          "sec.s1.t": "AES-256-GCM Şifreli Oturum",
+          "sec.s1.d":
+            "Oturum anahtarları bilgisayarında rastgele üretilen 256-bit anahtarla şifrelenir; kurcalanmış dosyalar otomatik reddedilir.",
+          "sec.s2.t": "Diske Asla Şifre Yazılmaz",
+          "sec.s2.d":
+            "Google SSO'da uygulamaya hiç şifre girilmez. E-posta girişinde dahi şifren asla diske veya çerezlere kaydedilmez.",
+          "sec.s3.t": "Sadece 127.0.0.1 & HttpOnly",
+          "sec.s3.d":
+            "Sunucu yalnızca localhost'ta çalışır, ağa açılmaz. Ham token'lar tarayıcı localStorage'ına asla verilmez.",
+          "sec.s4.t": "Doğrudan Trafik · Sıfır Telemetri",
+          "sec.s4.d":
+            "Analitik, izleme veya 3. parti sunucu yok. Tüm istekler doğrudan bilgisayarından Storytel sunucularına gider.",
+          "qs.kicker": "Hızlı Başlangıç",
+          "qs.title": "30 saniyede kur ve dinlemeye başla.",
+          "qs.desc":
+            "Node.js 22+ ve Chrome/Edge gerektirir. http://127.0.0.1:3000 adresini açıp adres çubuğundan PWA olarak masaüstüne yükleyebilirsin.",
+          "footer.disclaimer":
+            "Kişisel kullanım için resmi olmayan açık kaynak istemcidir. Storytel AB ile bağlantısı yoktur.",
+        },
+      };
+
+      let lang = "en";
+      const applyLang = (next) => {
+        lang = next;
+        document.documentElement.lang = lang;
+        document.querySelectorAll("[data-i18n]").forEach((el) => {
+          const key = el.getAttribute("data-i18n");
+          if (i18n[lang][key]) el.innerHTML = i18n[lang][key];
+        });
+        document.getElementById("langToggle").textContent =
+          lang === "en" ? "TR" : "EN";
+      };
+
+      document.getElementById("langToggle").addEventListener("click", () => {
+        applyLang(lang === "en" ? "tr" : "en");
+      });
+
+      document.getElementById("copyBtn").addEventListener("click", async () => {
+        const text = `git clone https://github.com/<your-username>/storytel-client.git\ncd storytel-client\nnpm install\nnpm run build\nnpm run start`;
+        await navigator.clipboard.writeText(text);
+        const btn = document.getElementById("copyBtn");
+        btn.textContent = lang === "tr" ? "Kopyalandı ✓" : "Copied ✓";
+        setTimeout(() => (btn.textContent = "Copy"), 2000);
+      });
+    </script>
+  </body>
+</html>

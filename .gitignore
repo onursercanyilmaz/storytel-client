@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Next.js
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+
+# Local encrypted data, SSO browser profile, downloaded audiobooks
+.data/
+
+# Environment
+.env
+.env*.local
+
+# OS / Logs
+.DS_Store
+Thumbs.db
+*.log

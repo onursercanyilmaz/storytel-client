@@ -1,0 +1,16 @@
+{
+  "name": "Storytel",
+  "short_name": "Storytel",
+  "description": "Storytel sesli kitap oynatıcısı",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAF7F2",
+  "theme_color": "#FF5500",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

@@ -1,0 +1,122 @@
+@import "tailwindcss";
+
+:root {
+  --st-bg: #FAF7F2;
+  --st-surface: #FFFFFF;
+  --st-surface-alt: #F2EDE4;
+  --st-border: #E8E1D5;
+  --st-ink: #1A1715;
+  --st-muted: #6B655E;
+  --st-accent: #FF5500;
+  --st-accent-hover: #E04A00;
+  --st-accent-soft: #FFF0E8;
+}
+
+.dark {
+  --st-bg: #0A0A0A;
+  --st-surface: #141414;
+  --st-surface-alt: #1E1E1E;
+  --st-border: #262626;
+  --st-ink: #F5F5F5;
+  --st-muted: #9A9A9A;
+  --st-accent: #FF5500;
+  --st-accent-hover: #FF6A1A;
+  --st-accent-soft: rgba(255, 85, 0, 0.14);
+}
+
+@layer base {
+  body {
+    background-color: var(--st-bg);
+    color: var(--st-ink);
+    -webkit-font-smoothing: antialiased;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+}
+
+.font-serif-st {
+  font-family: var(--font-serif), Georgia, serif;
+}
+
+.st-bg {
+  background-color: var(--st-bg);
+}
+
+.st-surface {
+  background-color: var(--st-surface);
+}
+
+.st-surface-alt {
+  background-color: var(--st-surface-alt);
+}
+
+.st-border {
+  border-color: var(--st-border);
+}
+
+.st-ink {
+  color: var(--st-ink);
+}
+
+.st-muted {
+  color: var(--st-muted);
+}
+
+.st-accent-bg {
+  background-color: var(--st-accent);
+}
+
+.st-accent-bg:hover {
+  background-color: var(--st-accent-hover);
+}
+
+.st-accent-text {
+  color: var(--st-accent);
+}
+
+.st-accent-soft {
+  background-color: var(--st-accent-soft);
+}
+
+.st-cover-shadow {
+  box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.28), 0 2px 6px -1px rgba(0, 0, 0, 0.14);
+}
+
+.dark .st-cover-shadow {
+  box-shadow: 0 10px 28px -6px rgba(0, 0, 0, 0.72), 0 2px 8px -1px rgba(0, 0, 0, 0.45);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--st-border);
+  border-radius: 9999px;
+}
+
+/* Range slider */
+input[type="range"].audio-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+input[type="range"].audio-slider::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 9999px;
+  background: var(--st-border);
+}
+input[type="range"].audio-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 13px;
+  width: 13px;
+  border-radius: 9999px;
+  background: #FF5500;
+  margin-top: -4.5px;
+  box-shadow: 0 0 0 3px rgba(255, 85, 0, 0.22);
+}
