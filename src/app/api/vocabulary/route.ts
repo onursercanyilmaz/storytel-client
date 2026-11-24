@@ -14,11 +14,19 @@ const createSchema = z.object({
   bookTitle: z.string().max(200).optional(),
 });
 
-export async function GET() {
+export async function GET(request: Request) {
   const auth = await requireStorytelClient();
   if (auth.error) return auth.error;
 
-  return NextResponse.json({ words: getVocabulary() });
+  const { searchParams } = new URL(request.url);
+  const bookId = searchParams.get("bookId");
+
+  let words = getVocabulary();
+  if (bookId) {
+    words = words.filter((w) => w.bookId === bookId);
+  }
+
+  return NextResponse.json({ words, total: words.length });
 }
 
 export async function POST(request: Request) {

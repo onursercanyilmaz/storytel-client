@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Check, Edit2, Plus, ShieldCheck, Trash2, X } from "lucide-react";
-import { MAX_PROFILES, PRESET_AVATARS, type UserProfile } from "@/lib/profiles";
+import { MAX_PROFILES, PRESET_AVATARS, type UserProfile } from "@/lib/profile-types";
 import { useProfiles } from "./ProfileContext";
 
 export default function ProfilePickerModal() {

@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Bookmark,
   BookmarkPlus,
+  BookMarked,
   ChevronDown,
   ChevronUp,
   Gauge,
@@ -22,6 +23,7 @@ import {
 import { usePlayer } from "./PlayerContext";
 import { usePreferences } from "./PreferencesContext";
 import { formatTime } from "@/lib/format";
+import BookVocabPanel from "./BookVocabPanel";
 
 interface PlayerBarProps {
   onOpenBookDetail: (bookId: string) => void;
@@ -61,10 +63,50 @@ export default function PlayerBar({ onOpenBookDetail }: PlayerBarProps) {
 
   const [expanded, setExpanded] = useState(false);
   const [openSheet, setOpenSheet] = useState<
-    "none" | "speed" | "sleep" | "chapters" | "bookmarks"
+    "none" | "speed" | "sleep" | "chapters" | "bookmarks" | "vocab"
   >("none");
   const [bookmarkNote, setBookmarkNote] = useState("");
   const [savingBookmark, setSavingBookmark] = useState(false);
+  const [bookVocabCount, setBookVocabCount] = useState<number>(0);
+
+  useEffect(() => {
+    if (!currentBook?.id) {
+      setBookVocabCount(0);
+      return;
+    }
+
+    let isMounted = true;
+    const fetchCount = async () => {
+      try {
+        const res = await fetch(
+          `/api/vocabulary?bookId=${encodeURIComponent(currentBook.id)}`,
+        );
+        if (res.ok && isMounted) {
+          const data = await res.json();
+          setBookVocabCount(
+            data.total ?? (Array.isArray(data.words) ? data.words.length : 0),
+          );
+        }
+      } catch {
+        // ignore
+      }
+    };
+
+    fetchCount();
+
+    const handleUpdate = (e: Event) => {
+      const ce = e as CustomEvent<{ bookId?: string }>;
+      if (!ce.detail?.bookId || ce.detail.bookId === currentBook.id) {
+        fetchCount();
+      }
+    };
+
+    window.addEventListener("vocab-updated", handleUpdate);
+    return () => {
+      isMounted = false;
+      window.removeEventListener("vocab-updated", handleUpdate);
+    };
+  }, [currentBook?.id]);
 
   if (!currentBook) return null;
 
@@ -81,12 +123,34 @@ export default function PlayerBar({ onOpenBookDetail }: PlayerBarProps) {
     if (ok) setBookmarkNote("");
   };
 
-  const toggleSheet = (name: "speed" | "sleep" | "chapters" | "bookmarks") => {
+  const toggleSheet = (
+    name: "speed" | "sleep" | "chapters" | "bookmarks" | "vocab",
+  ) => {
     setOpenSheet((prev) => (prev === name ? "none" : name));
   };
 
   const renderUtilitySheet = () => {
     if (openSheet === "none") return null;
+
+    if (openSheet === "vocab") {
+      return (
+        <div
+          className={`z-50 ${
+            expanded
+              ? "fixed bottom-24 left-1/2 -translate-x-1/2"
+              : "absolute bottom-full right-4 mb-3"
+          }`}
+        >
+          <BookVocabPanel
+            bookId={currentBook.id}
+            bookTitle={currentBook.title}
+            onClose={() => setOpenSheet("none")}
+            isDrawer
+          />
+        </div>
+      );
+    }
+
     return (
       <div
         className={`z-50 w-80 max-w-[calc(100vw-2rem)] rounded-3xl st-surface border st-border shadow-2xl p-5 max-h-[60vh] flex flex-col ${
@@ -418,9 +482,9 @@ export default function PlayerBar({ onOpenBookDetail }: PlayerBarProps) {
           </div>
         </div>
 
-        {/* Classic Storytel 4-Button Bottom Bar */}
+        {/* Classic Storytel 5-Button Bottom Bar */}
         <div className="relative z-10 max-w-lg w-full mx-auto px-6 pb-8 pt-4">
-          <div className="grid grid-cols-4 gap-2 st-surface border st-border rounded-full p-2 shadow-lg">
+          <div className="grid grid-cols-5 gap-1.5 st-surface border st-border rounded-full p-2 shadow-lg">
             <button
               type="button"
               onClick={() => toggleSheet("speed")}
@@ -474,6 +538,25 @@ export default function PlayerBar({ onOpenBookDetail }: PlayerBarProps) {
             >
               <Bookmark className="w-4 h-4" />
               <span>Yer İmi</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => toggleSheet("vocab")}
+              className={`py-2 rounded-full flex flex-col items-center gap-0.5 text-[11px] font-semibold transition cursor-pointer relative ${
+                openSheet === "vocab"
+                  ? "text-[#FF5500]"
+                  : "st-muted hover:text-[#FF5500]"
+              }`}
+            >
+              <div className="relative">
+                <BookMarked className="w-4 h-4" />
+                {bookVocabCount > 0 && (
+                  <span className="absolute -top-1.5 -right-2 px-1 min-w-[14px] h-3.5 rounded-full bg-[#FF5500] text-white text-[9px] font-black flex items-center justify-center">
+                    {bookVocabCount}
+                  </span>
+                )}
+              </div>
+              <span>Kelimeler</span>
             </button>
           </div>
         </div>
@@ -638,6 +721,24 @@ export default function PlayerBar({ onOpenBookDetail }: PlayerBarProps) {
             title="Yer İmleri"
           >
             <Bookmark className="w-4 h-4" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => toggleSheet("vocab")}
+            className={`p-2 rounded-full transition cursor-pointer relative ${
+              openSheet === "vocab"
+                ? "st-accent-soft text-[#FF5500]"
+                : "st-muted hover:text-[#FF5500]"
+            }`}
+            title={`Kitabın Kelimeleri (${bookVocabCount})`}
+          >
+            <BookMarked className="w-4 h-4" />
+            {bookVocabCount > 0 && (
+              <span className="absolute top-0.5 right-0.5 px-1 min-w-[14px] h-3.5 rounded-full bg-[#FF5500] text-white text-[9px] font-black flex items-center justify-center shadow-sm">
+                {bookVocabCount}
+              </span>
+            )}
           </button>
 
           <div className="hidden md:flex items-center gap-1.5 ml-1">

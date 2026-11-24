@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
-import type { UserProfile } from "@/lib/profiles";
+import type { UserProfile } from "@/lib/profile-types";
 
 interface ProfileContextType {
   profiles: UserProfile[];

@@ -35,6 +35,7 @@ import type { ParsedEbook } from "@/lib/epub-parser";
 import { toPlayingBook, usePlayer } from "./PlayerContext";
 import { usePreferences } from "./PreferencesContext";
 import { formatTime, formatBytes } from "@/lib/format";
+import BookVocabPanel from "./BookVocabPanel";
 
 interface ReadAndListenViewProps {
   book: BookshelfBook;
@@ -140,10 +141,44 @@ export default function ReadAndListenView({
   const [readerTheme, setReaderTheme] = useState<ReaderTheme>("sepia");
   const [autoSync, setAutoSync] = useState(true);
 
-  // Right pane tabs
-  const [sideTab, setSideTab] = useState<"chapters" | "bookmarks">("chapters");
+  // Right pane tabs & vocabulary slide-over
+  const [sideTab, setSideTab] = useState<"chapters" | "bookmarks" | "vocab">("chapters");
   const [bmNote, setBmNote] = useState("");
   const [savingBm, setSavingBm] = useState(false);
+  const [showVocabPanel, setShowVocabPanel] = useState(false);
+  const [bookVocabCount, setBookVocabCount] = useState<number>(0);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchCount = async () => {
+      try {
+        const res = await fetch(
+          `/api/vocabulary?bookId=${encodeURIComponent(book.id)}`,
+        );
+        if (res.ok && isMounted) {
+          const data = await res.json();
+          setBookVocabCount(
+            data.total ?? (Array.isArray(data.words) ? data.words.length : 0),
+          );
+        }
+      } catch {
+        // ignore
+      }
+    };
+    fetchCount();
+
+    const handleUpdate = (e: Event) => {
+      const ce = e as CustomEvent<{ bookId?: string }>;
+      if (!ce.detail?.bookId || ce.detail.bookId === book.id) {
+        fetchCount();
+      }
+    };
+    window.addEventListener("vocab-updated", handleUpdate);
+    return () => {
+      isMounted = false;
+      window.removeEventListener("vocab-updated", handleUpdate);
+    };
+  }, [book.id]);
 
   // Quick Vocabulary Capture (highlight in EPUB or click "+ Kelime" for PDF/audio)
   const [vocabDraft, setVocabDraft] = useState<{
@@ -251,6 +286,11 @@ export default function ReadAndListenView({
     });
     if (res.ok) {
       setVocabDraft((prev) => (prev ? { ...prev, saved: true } : null));
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("vocab-updated", { detail: { bookId: book.id } }),
+        );
+      }
       setTimeout(() => setVocabDraft(null), 900);
     }
   };
@@ -560,6 +600,30 @@ export default function ReadAndListenView({
             ))}
           </div>
 
+          {/* Book Vocabulary Panel Toggle */}
+          <button
+            type="button"
+            onClick={() => setShowVocabPanel((v) => !v)}
+            className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 border transition cursor-pointer shrink-0 ${
+              showVocabPanel
+                ? "st-accent-soft border-[#FF5500]/40 text-[#FF5500]"
+                : "st-bg st-border st-muted hover:st-ink"
+            }`}
+            title={
+              lang === "tr"
+                ? "Bu kitaba ait kelimeleri sağ panelde aç"
+                : "Open words for this book in side panel"
+            }
+          >
+            <BookMarked className="w-3.5 h-3.5 text-[#FF5500]" />
+            <span>{lang === "tr" ? "Kelimeler" : "Words"}</span>
+            {bookVocabCount > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full bg-[#FF5500] text-white text-[10px] font-extrabold">
+                {bookVocabCount}
+              </span>
+            )}
+          </button>
+
           <button
             type="button"
             onClick={() =>
@@ -576,16 +640,16 @@ export default function ReadAndListenView({
                 saved: false,
               })
             }
-            className="px-3 py-1.5 rounded-full st-accent-soft border border-[#FF5500]/40 text-[#FF5500] hover:bg-[#FF5500] hover:text-white text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shrink-0"
+            className="px-2.5 py-1.5 rounded-full st-accent-soft border border-[#FF5500]/40 text-[#FF5500] hover:bg-[#FF5500] hover:text-white text-xs font-bold flex items-center gap-1 transition cursor-pointer shrink-0"
             title={
               lang === "tr"
-                ? "Kelime Defterine Yeni Kelime Kaydet"
-                : "Save word to Vocabulary"
+                ? "Kelime Defterine Hızlı Kelime Kaydet"
+                : "Quick save word to Vocabulary"
             }
           >
-            <BookMarked className="w-3.5 h-3.5" />
+            <Plus className="w-3.5 h-3.5" />
             <span className="hidden lg:inline">
-              {lang === "tr" ? "+ Kelime" : "+ Word"}
+              {lang === "tr" ? "Kelime Ekle" : "Add Word"}
             </span>
           </button>
 
@@ -980,8 +1044,8 @@ export default function ReadAndListenView({
             </div>
           </div>
 
-          {/* Right Pane Tabs: Audio Chapters & Bookmarks */}
-          <div className="px-5 pt-2.5 border-b st-border flex gap-5 text-xs font-bold shrink-0">
+          {/* Right Pane Tabs: Audio Chapters, Bookmarks & Vocabulary */}
+          <div className="px-5 pt-2.5 border-b st-border flex gap-4 text-xs font-bold shrink-0">
             <button
               type="button"
               onClick={() => setSideTab("chapters")}
@@ -1007,12 +1071,24 @@ export default function ReadAndListenView({
               <Bookmark className="w-3.5 h-3.5" />
               {lang === "tr" ? "Yer İmleri" : "Bookmarks"} ({bookmarks.length})
             </button>
+            <button
+              type="button"
+              onClick={() => setSideTab("vocab")}
+              className={`pb-2.5 border-b-2 flex items-center gap-1.5 cursor-pointer ${
+                sideTab === "vocab"
+                  ? "border-[#FF5500] text-[#FF5500]"
+                  : "border-transparent st-muted"
+              }`}
+            >
+              <BookMarked className="w-3.5 h-3.5" />
+              {lang === "tr" ? "Kelimeler" : "Words"} ({bookVocabCount})
+            </button>
           </div>
 
           {/* Tab Content */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-1.5">
-            {sideTab === "chapters" ? (
-              audioChapters.length === 0 ? (
+          <div className="flex-1 overflow-y-auto p-4 space-y-1.5 flex flex-col">
+            {sideTab === "chapters" &&
+              (audioChapters.length === 0 ? (
                 <p className="text-xs st-muted text-center py-8">
                   {lang === "tr"
                     ? "Bölüm bilgisi bulunamadı."
@@ -1039,8 +1115,9 @@ export default function ReadAndListenView({
                     </button>
                   );
                 })
-              )
-            ) : (
+              ))}
+
+            {sideTab === "bookmarks" && (
               <div className="space-y-3">
                 <form onSubmit={handleAddBm} className="flex gap-1.5">
                   <input
@@ -1089,6 +1166,16 @@ export default function ReadAndListenView({
                     </button>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {sideTab === "vocab" && (
+              <div className="flex-1 -m-4 flex flex-col overflow-hidden">
+                <BookVocabPanel
+                  bookId={book.id}
+                  bookTitle={book.title}
+                  isDrawer
+                />
               </div>
             )}
           </div>
@@ -1223,6 +1310,15 @@ export default function ReadAndListenView({
             </button>
           </form>
         </div>
+      )}
+
+      {/* Book-Specific Vocabulary Slide-Over Panel */}
+      {showVocabPanel && (
+        <BookVocabPanel
+          bookId={book.id}
+          bookTitle={book.title}
+          onClose={() => setShowVocabPanel(false)}
+        />
       )}
     </div>
   );

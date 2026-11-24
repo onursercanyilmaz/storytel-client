@@ -111,4 +111,27 @@ test("vocabulary builder supports add, deduplication, mastered toggle, and delet
 
   assert.equal(deleteVocabEntry(entry.id), true);
   assert.equal(getVocabulary().length, 0);
+
+  // Book-specific entries
+  addVocabEntry({
+    word: "dystopia",
+    meaning: "baskıcı toplum",
+    bookId: "book-1984",
+    bookTitle: "1984",
+  });
+  addVocabEntry({
+    word: "epiphany",
+    meaning: "ani aydınlanma",
+    bookId: "book-dubliners",
+    bookTitle: "Dubliners",
+  });
+
+  const allWords = getVocabulary();
+  assert.equal(allWords.length, 2);
+  const book1984Words = allWords.filter((w) => w.bookId === "book-1984");
+  assert.equal(book1984Words.length, 1);
+  assert.equal(book1984Words[0].word, "dystopia");
+
+  deleteVocabEntry(allWords[0].id);
+  deleteVocabEntry(allWords[1].id);
 });

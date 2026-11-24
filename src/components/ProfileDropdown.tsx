@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { Check, ChevronDown, Edit2, LogOut, Plus, ShieldCheck, Users } from "lucide-react";
-import { MAX_PROFILES } from "@/lib/profiles";
+import { MAX_PROFILES } from "@/lib/profile-types";
 import { useProfiles } from "./ProfileContext";
 
 interface ProfileDropdownProps {
