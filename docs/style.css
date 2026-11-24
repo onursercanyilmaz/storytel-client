@@ -448,6 +448,76 @@ footer p + p {
   opacity: 0.75;
 }
 
+/* Download Cards */
+.download-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: center;
+  padding: 32px 24px;
+}
+
+.download-card .card-icon {
+  font-size: 2.2rem;
+  width: auto;
+  height: auto;
+  margin: 0 auto 14px;
+}
+
+.download-card h3 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+.dl-compat {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-bottom: 22px;
+}
+
+.dl-actions {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btn-block {
+  width: 100%;
+  justify-content: center;
+}
+
+.dl-alt-text {
+  font-size: 0.76rem;
+  color: var(--muted);
+  opacity: 0.85;
+}
+
+.dl-footer-note {
+  text-align: center;
+  margin-top: 32px;
+  font-size: 0.92rem;
+  color: var(--muted);
+}
+
+.badge-pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.78rem;
+  margin-right: 6px;
+}
+
+.link-accent {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
 @media (max-width: 900px) {
   .grid-3 {
     grid-template-columns: repeat(2, 1fr);

@@ -36,6 +36,7 @@
         </a>
 
         <nav class="nav-links">
+          <a href="#download" data-i18n="nav.download">Download</a>
           <a href="#features" data-i18n="nav.features">Features</a>
           <a href="#security" data-i18n="nav.security">Security</a>
           <a href="#quickstart" data-i18n="nav.quickstart">Quick Start</a>
@@ -44,11 +45,11 @@
         <div class="nav-actions">
           <button id="langToggle" class="lang-btn" type="button">TR / EN</button>
           <a
-            href="#quickstart"
+            href="#download"
             class="btn btn-primary btn-sm"
             data-i18n="nav.getStarted"
           >
-            Get Started
+            Download
           </a>
         </div>
       </div>
@@ -71,8 +72,8 @@
         </p>
 
         <div class="hero-cta">
-          <a href="#quickstart" class="btn btn-primary" data-i18n="hero.ctaPrimary">
-            Install Locally (Free)
+          <a href="#download" class="btn btn-primary" data-i18n="hero.ctaPrimary">
+            Download for Desktop
           </a>
           <a
             href="https://github.com/onursercanyilmaz/storytel-client"
@@ -90,6 +91,81 @@
             src="banner.jpg"
             alt="storytel-client desktop audiobook player interface"
           />
+        </div>
+      </div>
+    </section>
+
+    <!-- Download Section -->
+    <section id="download" class="section">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-kicker" data-i18n="dl.kicker">Downloads &amp; Releases</div>
+          <h2 data-i18n="dl.title">Get storytel-client for your desktop</h2>
+          <p data-i18n="dl.desc">
+            Choose your operating system below to download the latest desktop installer, portable package, or install as a PWA.
+          </p>
+        </div>
+
+        <div class="grid-3 download-grid">
+          <!-- Windows -->
+          <article class="card download-card">
+            <div class="card-icon">🪟</div>
+            <h3>Windows</h3>
+            <p class="dl-compat">Windows 10 / 11 (64-bit)</p>
+            <div class="dl-actions">
+              <a
+                href="https://github.com/onursercanyilmaz/storytel-client/releases/latest"
+                id="btn-dl-win"
+                class="btn btn-primary btn-block"
+                data-i18n="dl.btnWin"
+              >
+                Download for Windows (.zip / .exe)
+              </a>
+              <span class="dl-alt-text">One-click portable package + start.bat</span>
+            </div>
+          </article>
+
+          <!-- macOS -->
+          <article class="card download-card">
+            <div class="card-icon">🍎</div>
+            <h3>macOS</h3>
+            <p class="dl-compat">macOS 12 Monterey or later (Apple Silicon &amp; Intel)</p>
+            <div class="dl-actions">
+              <a
+                href="https://github.com/onursercanyilmaz/storytel-client/releases/latest"
+                id="btn-dl-mac"
+                class="btn btn-primary btn-block"
+                data-i18n="dl.btnMac"
+              >
+                Download for macOS (.tar.gz)
+              </a>
+              <span class="dl-alt-text">Universal portable package</span>
+            </div>
+          </article>
+
+          <!-- Linux -->
+          <article class="card download-card">
+            <div class="card-icon">🐧</div>
+            <h3>Linux</h3>
+            <p class="dl-compat">Ubuntu, Debian, Fedora, Arch (x64)</p>
+            <div class="dl-actions">
+              <a
+                href="https://github.com/onursercanyilmaz/storytel-client/releases/latest"
+                id="btn-dl-linux"
+                class="btn btn-primary btn-block"
+                data-i18n="dl.btnLinux"
+              >
+                Download for Linux (.tar.gz)
+              </a>
+              <span class="dl-alt-text">Portable standalone package</span>
+            </div>
+          </article>
+        </div>
+
+        <div class="dl-footer-note">
+          <p>
+            <span class="badge-pill">⚡ PWA Ready</span> Or run locally in your browser with zero install: <a href="#quickstart" class="link-accent">Follow Quick Start guide</a>
+          </p>
         </div>
       </div>
     </section>
@@ -272,16 +348,24 @@ npm run build
     <script>
       const i18n = {
         en: {
+          "nav.download": "Download",
           "nav.features": "Features",
           "nav.security": "Security",
           "nav.quickstart": "Quick Start",
-          "nav.getStarted": "Get Started",
+          "nav.getStarted": "Download",
           "hero.badge": "Open Source · MIT · Next.js 15 & PWA",
           "hero.title": "Your audiobooks.<br /><span>On your desktop.</span>",
           "hero.lead":
             "Official Storytel does not support reading or listening on desktop web. storytel-client bridges this gap: split-screen Read & Listen mode with Audio Sync, instant 100+ language word lookup, offline MP3/EPUB downloads, and Google SSO.",
-          "hero.ctaPrimary": "Install Locally (Free)",
+          "hero.ctaPrimary": "Download for Desktop",
           "hero.ctaGithub": "View Source on GitHub",
+          "dl.kicker": "Downloads & Releases",
+          "dl.title": "Get storytel-client for your desktop",
+          "dl.desc":
+            "Choose your operating system below to download the latest desktop installer, portable package, or install as a PWA.",
+          "dl.btnWin": "Download for Windows (.zip / .exe)",
+          "dl.btnMac": "Download for macOS (.tar.gz)",
+          "dl.btnLinux": "Download for Linux (.tar.gz)",
           "feat.kicker": "Features",
           "feat.title": "Everything in the mobile app — and more.",
           "feat.desc":
@@ -337,16 +421,24 @@ npm run build
             "Unofficial client for personal use. Not affiliated with or endorsed by Storytel AB.",
         },
         tr: {
+          "nav.download": "İndir",
           "nav.features": "Özellikler",
           "nav.security": "Güvenlik",
           "nav.quickstart": "Hızlı Başlangıç",
-          "nav.getStarted": "Başla",
+          "nav.getStarted": "İndir",
           "hero.badge": "Açık Kaynak · MIT · Next.js 15 & PWA",
           "hero.title": "Sesli kitapların.<br /><span>Artık masaüstünde.</span>",
           "hero.lead":
             "Resmi Storytel web'de kitap okuma veya dinleme imkânı sunmaz. storytel-client bu eksikliği giderir: bölünmüş ekranda aynı anda Oku & Dinle, 100+ dilde anında kelime çevirisi & Anki defteri, çevrimdışı MP3/EPUB indirme ve Google SSO.",
-          "hero.ctaPrimary": "Yerelde Kur (Ücretsiz)",
+          "hero.ctaPrimary": "Masaüstü İçin İndir",
           "hero.ctaGithub": "GitHub'da İncele",
+          "dl.kicker": "İndirmeler & Sürümler",
+          "dl.title": "storytel-client'ı masaüstüne indir",
+          "dl.desc":
+            "Aşağıdan işletim sistemini seçerek en son masaüstü paketini indir veya doğrudan PWA olarak kullan.",
+          "dl.btnWin": "Windows İçin İndir (.zip / .exe)",
+          "dl.btnMac": "macOS İçin İndir (.tar.gz)",
+          "dl.btnLinux": "Linux İçin İndir (.tar.gz)",
           "feat.kicker": "Özellikler",
           "feat.title": "Mobil uygulamadaki her şey — ve daha fazlası.",
           "feat.desc":
