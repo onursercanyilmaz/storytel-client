@@ -518,6 +518,20 @@ npm run build
         btn.textContent = lang === "tr" ? "Kopyalandı ✓" : "Copied ✓";
         setTimeout(() => (btn.textContent = "Copy"), 2000);
       });
+
+      // Automatically fetch latest GitHub release assets
+      fetch("https://api.github.com/repos/onursercanyilmaz/storytel-client/releases/latest")
+        .then((r) => (r.ok ? r.json() : null))
+        .then((rel) => {
+          if (!rel || !Array.isArray(rel.assets)) return;
+          const win = rel.assets.find((a) => a.name.includes("win") || a.name.endsWith(".exe") || a.name.endsWith(".zip"));
+          const mac = rel.assets.find((a) => a.name.includes("mac") || a.name.endsWith(".dmg") || a.name.endsWith(".tar.gz"));
+          const linux = rel.assets.find((a) => a.name.includes("linux") || a.name.endsWith(".tar.gz"));
+          if (win && document.getElementById("btn-dl-win")) document.getElementById("btn-dl-win").href = win.browser_download_url;
+          if (mac && document.getElementById("btn-dl-mac")) document.getElementById("btn-dl-mac").href = mac.browser_download_url;
+          if (linux && document.getElementById("btn-dl-linux")) document.getElementById("btn-dl-linux").href = linux.browser_download_url;
+        })
+        .catch(() => {});
     </script>
   </body>
 </html>
