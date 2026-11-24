@@ -67,7 +67,7 @@
         </h1>
 
         <p class="lead" data-i18n="hero.lead">
-          A fast, security-first unofficial Storytel client built for desktop browsers and PWA. Sign in with Google SSO, organize custom groups, download offline MP3s, and sync seamlessly with your phone.
+          Official Storytel does not support reading or listening on desktop web. storytel-client bridges this gap: split-screen Read &amp; Listen mode with Audio Sync, instant 100+ language word lookup, offline MP3/EPUB downloads, and Google SSO.
         </p>
 
         <div class="hero-cta">
@@ -75,7 +75,7 @@
             Install Locally (Free)
           </a>
           <a
-            href="https://github.com"
+            href="https://github.com/onursercanyilmaz/storytel-client"
             target="_blank"
             rel="noopener noreferrer"
             class="btn btn-secondary"
@@ -107,6 +107,30 @@
 
         <div class="grid-3">
           <article class="card">
+            <div class="card-icon">📖</div>
+            <h3 data-i18n="feat.f0.t">Read &amp; Listen Split Screen</h3>
+            <p data-i18n="feat.f0.d">
+              Read e-books and listen to audiobooks side-by-side with automatic Audio Sync, Dark/Sepia/Light reader themes, and local EPUB/PDF import.
+            </p>
+          </article>
+
+          <article class="card">
+            <div class="card-icon">🌍</div>
+            <h3 data-i18n="feat.f7.t">Multilingual Vocabulary Builder</h3>
+            <p data-i18n="feat.f7.d">
+              Double-click any word to see definitions, phonetics, and native speech pronunciation in 100+ languages. Save cards and export to Anki / CSV.
+            </p>
+          </article>
+
+          <article class="card">
+            <div class="card-icon">⬇️</div>
+            <h3 data-i18n="feat.f5.t">EPUB, MP3 &amp; PDF Downloads</h3>
+            <p data-i18n="feat.f5.d">
+              Download original EPUB e-books, save audiobooks as local offline MP3s, or export chapters as clean print-ready PDFs with one click.
+            </p>
+          </article>
+
+          <article class="card">
             <div class="card-icon">🔐</div>
             <h3 data-i18n="feat.f1.t">One-Click Google SSO</h3>
             <p data-i18n="feat.f1.d">
@@ -135,14 +159,6 @@
             <h3 data-i18n="feat.f4.t">Custom Groups &amp; Favorites</h3>
             <p data-i18n="feat.f4.d">
               Go beyond the default shelf: like audiobooks and organize them into color-coded custom collections like Sci-Fi, Bedtime, or Commute.
-            </p>
-          </article>
-
-          <article class="card">
-            <div class="card-icon">⬇️</div>
-            <h3 data-i18n="feat.f5.t">Offline MP3 Downloads</h3>
-            <p data-i18n="feat.f5.d">
-              Download books locally with live progress tracking. Downloaded audiobooks automatically stream from your local disk with zero buffering.
             </p>
           </article>
 
@@ -233,7 +249,7 @@
             <button id="copyBtn" class="copy-btn" type="button">Copy</button>
           </div>
           <pre id="quickStartCode"><span class="cmd-comment"># Clone &amp; install</span>
-git clone https://github.com/&lt;your-username&gt;/storytel-client.git
+git clone https://github.com/onursercanyilmaz/storytel-client.git
 cd storytel-client
 npm install
 
@@ -263,13 +279,22 @@ npm run build
           "hero.badge": "Open Source · MIT · Next.js 15 & PWA",
           "hero.title": "Your audiobooks.<br /><span>On your desktop.</span>",
           "hero.lead":
-            "A fast, security-first unofficial Storytel client built for desktop browsers and PWA. Sign in with Google SSO, organize custom groups, download offline MP3s, and sync seamlessly with your phone.",
+            "Official Storytel does not support reading or listening on desktop web. storytel-client bridges this gap: split-screen Read & Listen mode with Audio Sync, instant 100+ language word lookup, offline MP3/EPUB downloads, and Google SSO.",
           "hero.ctaPrimary": "Install Locally (Free)",
           "hero.ctaGithub": "View Source on GitHub",
           "feat.kicker": "Features",
           "feat.title": "Everything in the mobile app — and more.",
           "feat.desc":
             "Designed with Storytel's clean aesthetic in both Dark and Warm Light themes, without Electron's 200 MB memory footprint.",
+          "feat.f0.t": "Read & Listen Split Screen",
+          "feat.f0.d":
+            "Read e-books and listen to audiobooks side-by-side with automatic Audio Sync, Dark/Sepia/Light reader themes, and local EPUB/PDF import.",
+          "feat.f7.t": "Multilingual Vocabulary Builder",
+          "feat.f7.d":
+            "Double-click any word to see definitions, phonetics, and native speech pronunciation in 100+ languages. Save cards and export to Anki / CSV.",
+          "feat.f5.t": "EPUB, MP3 & PDF Downloads",
+          "feat.f5.d":
+            "Download original EPUB e-books, save audiobooks as local offline MP3s, or export chapters as clean print-ready PDFs with one click.",
           "feat.f1.t": "One-Click Google SSO",
           "feat.f1.d":
             "Opens your real Chrome or Edge browser in an isolated profile with zero automation flags, so Google OAuth never blocks your sign-in.",
@@ -319,13 +344,22 @@ npm run build
           "hero.badge": "Açık Kaynak · MIT · Next.js 15 & PWA",
           "hero.title": "Sesli kitapların.<br /><span>Artık masaüstünde.</span>",
           "hero.lead":
-            "Masaüstü tarayıcılar ve PWA için güvenlik odaklı, hızlı ve açık kaynaklı Storytel istemcisi. Google ile tek tıkla giriş yap, özel gruplar oluştur, çevrimdışı MP3 indir ve telefonunla senkronize dinle.",
+            "Resmi Storytel web'de kitap okuma veya dinleme imkânı sunmaz. storytel-client bu eksikliği giderir: bölünmüş ekranda aynı anda Oku & Dinle, 100+ dilde anında kelime çevirisi & Anki defteri, çevrimdışı MP3/EPUB indirme ve Google SSO.",
           "hero.ctaPrimary": "Yerelde Kur (Ücretsiz)",
           "hero.ctaGithub": "GitHub'da İncele",
           "feat.kicker": "Özellikler",
           "feat.title": "Mobil uygulamadaki her şey — ve daha fazlası.",
           "feat.desc":
             "Electron'un 200 MB RAM yükü olmadan, hem Koyu hem Sıcak Açık Storytel temasıyla modern masaüstü deneyimi.",
+          "feat.f0.t": "Oku & Dinle Bölünmüş Ekran",
+          "feat.f0.d":
+            "E-kitap ve sesli kitabı yan yana aç, akıllı Ses Senkronizasyonu (Audio Sync) ile dinlerken oku. İster Storytel EPUB, ister yerel PDF/EPUB.",
+          "feat.f7.t": "Çok Dilli Kelime Defteri",
+          "feat.f7.d":
+            "Çift tıkla 100+ dilde anında çeviri ve sesli telaffuz. Bilmediğin kelimeleri defterine kaydet, Anki veya CSV olarak dışa aktar.",
+          "feat.f5.t": "EPUB, MP3 & PDF İndirme",
+          "feat.f5.d":
+            "E-kitapları orijinal EPUB formatında indir, sesli kitapları MP3 olarak bilgisayarına kaydet veya bölümleri PDF olarak yazdır.",
           "feat.f1.t": "Tek Tıkla Google SSO",
           "feat.f1.d":
             "Bilgisayarındaki gerçek Chrome veya Edge'i izole profilde otomasyon bayrağı olmadan açar; Google OAuth engeline takılmaz.",
@@ -386,7 +420,7 @@ npm run build
       });
 
       document.getElementById("copyBtn").addEventListener("click", async () => {
-        const text = `git clone https://github.com/<your-username>/storytel-client.git\ncd storytel-client\nnpm install\nnpm run build\nnpm run start`;
+        const text = `git clone https://github.com/onursercanyilmaz/storytel-client.git\ncd storytel-client\nnpm install\nnpm run build\nnpm run start`;
         await navigator.clipboard.writeText(text);
         const btn = document.getElementById("copyBtn");
         btn.textContent = lang === "tr" ? "Kopyalandı ✓" : "Copied ✓";

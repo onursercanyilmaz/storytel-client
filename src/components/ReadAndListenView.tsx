@@ -10,6 +10,7 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
+  Download,
   Gauge,
   Headphones,
   Link2,
@@ -21,10 +22,12 @@ import {
   Pause,
   Play,
   Plus,
+  Printer,
   RotateCcw,
   RotateCw,
   Trash2,
   Upload,
+  Volume2,
   X,
 } from "lucide-react";
 import type { BookshelfBook } from "@/lib/storytel/types";
@@ -148,26 +151,51 @@ export default function ReadAndListenView({
     meaning: string;
     phonetic: string;
     context: string;
+    from: string;
+    to: string;
     loading: boolean;
     saved: boolean;
   } | null>(null);
 
-  const openVocabLookup = async (word: string, context = "") => {
+  const speakWord = (word: string, langCode: string) => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    try {
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(word);
+      utter.lang = langCode || (book.language ? book.language.slice(0, 2) : "en");
+      window.speechSynthesis.speak(utter);
+    } catch {
+      // ignore
+    }
+  };
+
+  const openVocabLookup = async (
+    word: string,
+    context = "",
+    customTo?: string,
+  ) => {
     const clean = word
       .trim()
       .replace(/^[^a-zA-Z0-9ğüşöçıİĞÜŞÖÇ'-]+|[^a-zA-Z0-9ğüşöçıİĞÜŞÖÇ'-]+$/g, "");
     if (!clean || clean.length > 80) return;
+
+    const fromLang = (book.language || "en").toLowerCase();
+    const defaultTo = customTo || (fromLang.startsWith("tr") ? "en" : "tr");
+
     setVocabDraft({
       word: clean,
       meaning: "",
       phonetic: "",
       context,
+      from: fromLang,
+      to: defaultTo,
       loading: true,
       saved: false,
     });
+
     try {
       const res = await fetch(
-        `/api/vocabulary/lookup?word=${encodeURIComponent(clean)}`,
+        `/api/vocabulary/lookup?word=${encodeURIComponent(clean)}&from=${encodeURIComponent(fromLang)}&to=${encodeURIComponent(defaultTo)}`,
         { cache: "no-store" },
       );
       if (res.ok) {
@@ -178,6 +206,8 @@ export default function ReadAndListenView({
                 ...prev,
                 meaning: data.meaning || data.translation || data.definition || "",
                 phonetic: data.phonetic || "",
+                from: data.from || fromLang,
+                to: data.to || defaultTo,
                 loading: false,
               }
             : null,
@@ -538,6 +568,10 @@ export default function ReadAndListenView({
                 meaning: "",
                 phonetic: "",
                 context: "",
+                from: (book.language || "en").toLowerCase(),
+                to: (book.language || "en").toLowerCase().startsWith("tr")
+                  ? "en"
+                  : "tr",
                 loading: false,
                 saved: false,
               })
@@ -553,6 +587,30 @@ export default function ReadAndListenView({
             <span className="hidden lg:inline">
               {lang === "tr" ? "+ Kelime" : "+ Word"}
             </span>
+          </button>
+
+          {/* EPUB Download */}
+          {(book.hasEbook || book.ebookId) && (
+            <a
+              href={`/api/ebook/${encodeURIComponent(book.id)}/download?ebookId=${book.ebookId || ""}`}
+              download
+              className="px-3 py-1.5 rounded-full st-bg border st-border hover:border-emerald-500 hover:text-emerald-500 text-xs font-semibold st-ink flex items-center gap-1.5 transition cursor-pointer shrink-0"
+              title={lang === "tr" ? "EPUB dosyasını bilgisayarına indir" : "Download EPUB file"}
+            >
+              <Download className="w-3.5 h-3.5 text-emerald-500" />
+              <span className="hidden sm:inline">EPUB</span>
+            </a>
+          )}
+
+          {/* PDF / Print */}
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="px-3 py-1.5 rounded-full st-bg border st-border hover:border-[#FF5500] text-xs font-semibold st-ink flex items-center gap-1.5 transition cursor-pointer shrink-0"
+            title={lang === "tr" ? "PDF Olarak Kaydet veya Yazdır" : "Print or Save as PDF"}
+          >
+            <Printer className="w-3.5 h-3.5 text-[#FF5500]" />
+            <span className="hidden xl:inline">PDF</span>
           </button>
 
           {/* Local .epub / .pdf Upload */}
@@ -1063,9 +1121,21 @@ export default function ReadAndListenView({
               />
               <button
                 type="button"
+                onClick={() => speakWord(vocabDraft.word, vocabDraft.from)}
+                className="p-2 rounded-xl st-surface-alt border st-border text-xs font-bold st-ink hover:text-[#FF5500] hover:border-[#FF5500] cursor-pointer"
+                title={lang === "tr" ? "Sesli Dinle" : "Pronounce"}
+              >
+                <Volume2 className="w-4 h-4 text-[#FF5500]" />
+              </button>
+              <button
+                type="button"
                 disabled={vocabDraft.loading || !vocabDraft.word.trim()}
                 onClick={() =>
-                  openVocabLookup(vocabDraft.word, vocabDraft.context)
+                  openVocabLookup(
+                    vocabDraft.word,
+                    vocabDraft.context,
+                    vocabDraft.to,
+                  )
                 }
                 className="px-3 py-2 rounded-xl st-surface-alt border st-border text-xs font-bold st-ink hover:border-[#FF5500] cursor-pointer"
               >
@@ -1079,11 +1149,34 @@ export default function ReadAndListenView({
               </button>
             </div>
 
-            {vocabDraft.phonetic && (
-              <div className="text-xs font-mono st-muted px-1">
-                {vocabDraft.phonetic}
+            {/* Language pair and phonetic bar */}
+            <div className="flex items-center justify-between text-xs px-1">
+              <div className="flex items-center gap-1.5 font-bold uppercase tracking-wider text-[11px]">
+                <span className="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 font-mono text-[10px]">
+                  {vocabDraft.from.toUpperCase()} ➔ {vocabDraft.to.toUpperCase()}
+                </span>
+                {vocabDraft.phonetic && (
+                  <span className="font-mono st-muted text-[11px]">
+                    {vocabDraft.phonetic}
+                  </span>
+                )}
               </div>
-            )}
+              <button
+                type="button"
+                onClick={() => {
+                  const nextTo = vocabDraft.to === "tr" ? "en" : "tr";
+                  void openVocabLookup(
+                    vocabDraft.word,
+                    vocabDraft.context,
+                    nextTo,
+                  );
+                }}
+                className="text-[10px] font-bold text-[#FF5500] hover:underline cursor-pointer"
+                title={lang === "tr" ? "Çeviri hedefini değiştir" : "Switch target language"}
+              >
+                ⇄ {vocabDraft.to === "tr" ? "İngilizceye Çevir" : "Türkçeye Çevir"}
+              </button>
+            </div>
 
             <textarea
               rows={2}

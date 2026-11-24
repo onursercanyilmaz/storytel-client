@@ -358,34 +358,62 @@ export default function BookDetailModal({
                 {shelfBook?.isFavorite ? "Beğenildi" : "Beğen"}
               </button>
 
-              {dlStatus.downloaded ? (
-                <button
-                  type="button"
-                  onClick={handleDeleteDownload}
-                  className="px-3.5 py-2.5 rounded-full text-xs font-semibold bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5 cursor-pointer"
-                  title="İndirilen MP3'ü sil"
+              {hasEbook && (
+                <a
+                  href={`/api/ebook/${encodeURIComponent(bookId)}/download?ebookId=${detail?.ebookId || shelfBook?.ebookId || ""}`}
+                  download
+                  className="px-3.5 py-2.5 rounded-full text-xs font-semibold st-surface border st-border st-ink hover:border-emerald-500 hover:text-emerald-500 flex items-center gap-1.5 transition cursor-pointer"
+                  title="EPUB e-kitap dosyasını bilgisayarına indir"
                 >
-                  <Check className="w-3.5 h-3.5" />
-                  İndirildi ({formatBytes(dlStatus.bytes)})
-                </button>
-              ) : dlStatus.downloading ? (
-                <button
-                  type="button"
-                  onClick={handleDeleteDownload}
-                  className="px-3.5 py-2.5 rounded-full text-xs font-semibold st-accent-soft text-[#FF5500] flex items-center gap-1.5 cursor-pointer"
-                >
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  %{dlStatus.percentage ?? 0} (İptal)
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleStartDownload}
-                  className="px-3.5 py-2.5 rounded-full text-xs font-semibold st-surface border st-border st-ink hover:border-[#FF5500] flex items-center gap-1.5 transition cursor-pointer"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  İndir
-                </button>
+                  <Download className="w-3.5 h-3.5 text-emerald-500" />
+                  EPUB İndir
+                </a>
+              )}
+
+              {hasAbook && (
+                dlStatus.downloaded ? (
+                  <div className="flex items-center gap-1.5">
+                    <a
+                      href={`/api/downloads/${encodeURIComponent(bookId)}/file?abookId=${abookId || ""}`}
+                      download
+                      className="px-3.5 py-2.5 rounded-full text-xs font-semibold bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5 hover:bg-emerald-500 hover:text-white transition cursor-pointer"
+                      title="MP3 ses dosyasını bilgisayarına kaydet"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      MP3 İndir ({formatBytes(dlStatus.bytes)})
+                    </a>
+                    <button
+                      type="button"
+                      onClick={handleDeleteDownload}
+                      className="p-2.5 rounded-full text-xs font-semibold st-surface border st-border st-muted hover:text-red-500 hover:border-red-400 transition cursor-pointer"
+                      title="İndirilen MP3 önbelleğini temizle"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ) : dlStatus.downloading ? (
+                  <button
+                    type="button"
+                    onClick={handleDeleteDownload}
+                    className="px-3.5 py-2.5 rounded-full text-xs font-semibold st-accent-soft text-[#FF5500] flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    %{dlStatus.percentage ?? 0} (İptal)
+                  </button>
+                ) : (
+                  <a
+                    href={`/api/downloads/${encodeURIComponent(bookId)}/file?abookId=${abookId || ""}`}
+                    download
+                    onClick={() => {
+                      void handleStartDownload();
+                    }}
+                    className="px-3.5 py-2.5 rounded-full text-xs font-semibold st-surface border st-border st-ink hover:border-[#FF5500] flex items-center gap-1.5 transition cursor-pointer"
+                    title="MP3 sesli kitabı indir"
+                  >
+                    <Download className="w-3.5 h-3.5 text-[#FF5500]" />
+                    MP3 İndir
+                  </a>
+                )
               )}
 
               {shelfBook ? (
