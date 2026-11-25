@@ -19,12 +19,19 @@ export async function PUT(request: Request) {
     if (!parsed.success) {
       return NextResponse.json({ error: "Geçersiz pozisyon verisi." }, { status: 400 });
     }
-    await auth.client.updatePositionalBookmark(
-      parsed.data.consumableId,
-      parsed.data.positionMs,
-      DEVICE_ID,
-    );
-    // Also save into active profile's local store for instant per-profile resume
+    const { getActiveProfile } = await import("@/lib/profiles");
+    const activeProfile = getActiveProfile();
+
+    // Only sync back to remote Storytel servers for the Main profile so sub-profiles never overwrite main progress
+    if (activeProfile.isMain) {
+      await auth.client.updatePositionalBookmark(
+        parsed.data.consumableId,
+        parsed.data.positionMs,
+        DEVICE_ID,
+      );
+    }
+
+    // Save into active profile's isolated local store
     const { saveProfilePosition } = await import("@/lib/local-store");
     saveProfilePosition(parsed.data.consumableId, parsed.data.positionMs);
     return NextResponse.json({ ok: true });

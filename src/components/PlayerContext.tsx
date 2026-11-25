@@ -564,6 +564,28 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     setSleepTimer({ type: "off" });
   }, [syncPositionNow]);
 
+  // Reset active player state when switching profiles so previous profile's playback doesn't leak
+  useEffect(() => {
+    const onProfileSwitch = () => {
+      try {
+        localStorage.removeItem(LAST_PLAYED_STORAGE_KEY);
+      } catch {}
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+      }
+      setCurrentBook(null);
+      setIsPlaying(false);
+      setCurrentTime(0);
+      setDuration(0);
+      setChapters([]);
+      setBookmarks([]);
+      setSleepTimer({ type: "off" });
+    };
+    window.addEventListener("profile-switched", onProfileSwitch);
+    return () => window.removeEventListener("profile-switched", onProfileSwitch);
+  }, []);
+
   // Windows / OS Media Session API integration (hardware media keys!)
   useEffect(() => {
     if (!("mediaSession" in navigator) || !currentBook) return;

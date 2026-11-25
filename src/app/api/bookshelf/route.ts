@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { handleApiError, requireStorytelClient } from "@/lib/api-helpers";
 import { getAllProfilePositions, getLibraryMeta } from "@/lib/local-store";
+import { getActiveProfile } from "@/lib/profiles";
 import { listDownloads } from "@/lib/downloads";
 
 export async function GET() {
@@ -8,6 +9,8 @@ export async function GET() {
   if (auth.error) return auth.error;
 
   try {
+    const activeProfile = getActiveProfile();
+    const isMain = activeProfile.isMain;
     const books = await auth.client.getBookshelf();
     const meta = getLibraryMeta();
     const downloads = listDownloads();
@@ -18,16 +21,24 @@ export async function GET() {
 
     const enriched = books.map((book) => {
       const pos = positions[book.id];
-      const positionMs = pos ? pos.positionMs : book.positionMs;
+      const positionMs = isMain
+        ? (pos ? pos.positionMs : book.positionMs)
+        : (pos ? pos.positionMs : 0);
+
       const progress =
         book.durationMs > 0
-          ? Math.min(1, positionMs / book.durationMs)
-          : book.progress;
+          ? Math.min(100, Math.round((positionMs / book.durationMs) * 100))
+          : (isMain ? book.progress : 0);
+
+      const status = isMain
+        ? (progress >= 99 ? "consumed" : pos && positionMs > 0 ? "consuming" : book.status)
+        : (progress >= 99 ? "consumed" : positionMs > 0 ? "consuming" : "will_consume");
 
       return {
         ...book,
         positionMs,
         progress,
+        status,
         isFavorite: favSet.has(book.id),
         collectionIds: meta.collections
           .filter((c) => c.bookIds.includes(book.id))

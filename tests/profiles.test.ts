@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { DATA_DIR } from "../src/lib/paths";
 import {
   getProfilesStore,
   getActiveProfile,
@@ -122,4 +123,33 @@ test("Profiles: Complete Data Isolation across profiles (Favorites, Position, Vo
   assert.equal(getLibraryMeta().favorites.includes(bookKid), false);
   assert.equal(getProfilePosition(bookMain)?.positionMs, 350000);
   assert.equal(getProfilePosition(bookKid), null);
+});
+
+test("Profiles: Sub-profiles start fresh and never inherit legacy root data", () => {
+  const legacyMeta = path.join(DATA_DIR, "library-meta.json");
+  const legacyVocab = path.join(DATA_DIR, "vocabulary.json");
+  const hadMeta = fs.existsSync(legacyMeta);
+  const hadVocab = fs.existsSync(legacyVocab);
+  if (!hadMeta) {
+    fs.writeFileSync(legacyMeta, JSON.stringify({ favorites: ["legacy-fav-1"], collections: [] }));
+  }
+  if (!hadVocab) {
+    fs.writeFileSync(
+      legacyVocab,
+      JSON.stringify([{ id: "v1", word: "legacyWord", meaning: "eski", mastered: false, createdAt: new Date().toISOString() }]),
+    );
+  }
+
+  const created = createProfile({ name: "Yeni Alt Hesap" });
+  assert.ok(created.profile);
+  try {
+    switchActiveProfile(created.profile!.id);
+    assert.equal(getLibraryMeta().favorites.length, 0);
+    assert.equal(getVocabulary().length, 0);
+  } finally {
+    switchActiveProfile("p-main");
+    deleteProfile(created.profile!.id);
+    if (!hadMeta) fs.rmSync(legacyMeta, { force: true });
+    if (!hadVocab) fs.rmSync(legacyVocab, { force: true });
+  }
 });

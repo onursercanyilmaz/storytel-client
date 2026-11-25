@@ -18,7 +18,7 @@ function getScopedMetaPath(profileId?: string): string {
   const pid = profileId || getActiveProfile().id;
   const dir = getProfileDir(pid);
   const p = path.join(dir, "library-meta.json");
-  if (!fs.existsSync(p)) {
+  if (pid === "p-main" && !fs.existsSync(p)) {
     const legacy = path.join(DATA_DIR, "library-meta.json");
     if (fs.existsSync(legacy)) {
       try {
@@ -33,7 +33,7 @@ function getScopedStatsPath(profileId?: string): string {
   const pid = profileId || getActiveProfile().id;
   const dir = getProfileDir(pid);
   const p = path.join(dir, "listening-stats.json");
-  if (!fs.existsSync(p)) {
+  if (pid === "p-main" && !fs.existsSync(p)) {
     const legacy = path.join(DATA_DIR, "listening-stats.json");
     if (fs.existsSync(legacy)) {
       try {
@@ -48,7 +48,7 @@ function getScopedVocabPath(profileId?: string): string {
   const pid = profileId || getActiveProfile().id;
   const dir = getProfileDir(pid);
   const p = path.join(dir, "vocabulary.json");
-  if (!fs.existsSync(p)) {
+  if (pid === "p-main" && !fs.existsSync(p)) {
     const legacy = path.join(DATA_DIR, "vocabulary.json");
     if (fs.existsSync(legacy)) {
       try {
