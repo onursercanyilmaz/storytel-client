@@ -14,6 +14,7 @@ import {
   Volume2,
 } from "lucide-react";
 import type { VocabEntry } from "@/lib/storytel/types";
+import { isDueForReview, type SrsQuality } from "@/lib/srs";
 import { usePreferences } from "./PreferencesContext";
 
 export default function VocabularyView() {
@@ -30,7 +31,7 @@ export default function VocabularyView() {
   const [saving, setSaving] = useState(false);
 
   // Filter & Flashcard mode
-  const [filter, setFilter] = useState<"all" | "learning" | "mastered">("all");
+  const [filter, setFilter] = useState<"all" | "due" | "learning" | "mastered">("all");
   const [query, setQuery] = useState("");
   const [flashcardMode, setFlashcardMode] = useState(false);
   const [cardIdx, setCardIdx] = useState(0);
@@ -164,8 +165,29 @@ export default function VocabularyView() {
     URL.revokeObjectURL(url);
   };
 
+  const handleSrsReview = async (item: VocabEntry, quality: SrsQuality) => {
+    const res = await fetch(`/api/vocabulary/${encodeURIComponent(item.id)}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reviewQuality: quality }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.entry) {
+        setWords((prev) =>
+          prev.map((w) => (w.id === item.id ? data.entry : w)),
+        );
+      }
+    }
+    setFlipped(false);
+    setCardIdx((i) => (studyDeck.length > 1 ? i % Math.max(1, studyDeck.length - 1) : 0));
+  };
+
+  const dueWords = useMemo(() => words.filter((w) => isDueForReview(w)), [words]);
+
   const filtered = useMemo(() => {
     return words.filter((w) => {
+      if (filter === "due" && !isDueForReview(w)) return false;
       if (filter === "learning" && w.mastered) return false;
       if (filter === "mastered" && !w.mastered) return false;
       if (query.trim()) {
@@ -181,8 +203,8 @@ export default function VocabularyView() {
   }, [words, filter, query]);
 
   const studyDeck = useMemo(
-    () => words.filter((w) => !w.mastered),
-    [words],
+    () => (dueWords.length > 0 ? dueWords : words.filter((w) => !w.mastered)),
+    [dueWords, words],
   );
   const activeCard = studyDeck[cardIdx % Math.max(1, studyDeck.length)] ?? null;
 
@@ -367,17 +389,36 @@ export default function VocabularyView() {
               {lang === "tr" ? "Dinle" : "Pronounce"}
             </button>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
-                onClick={async () => {
-                  await handleToggleMastered(activeCard);
-                  setFlipped(false);
-                }}
-                className="px-4 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                onClick={() => handleSrsReview(activeCard, 0)}
+                className="px-3.5 py-2 rounded-full bg-red-500/15 text-red-400 hover:bg-red-500/25 text-xs font-bold cursor-pointer"
+                title="1 gün sonra tekrar"
               >
-                <Check className="w-4 h-4" />
-                {lang === "tr" ? "Öğrendim" : "Mastered"}
+                {lang === "tr" ? "Tekrar (1g)" : "Again (1d)"}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSrsReview(activeCard, 2)}
+                className="px-3.5 py-2 rounded-full bg-amber-500/15 text-amber-400 hover:bg-amber-500/25 text-xs font-bold cursor-pointer"
+              >
+                {lang === "tr" ? "Zor" : "Hard"}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSrsReview(activeCard, 3)}
+                className="px-3.5 py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1 cursor-pointer"
+              >
+                <Check className="w-3.5 h-3.5" />
+                {lang === "tr" ? "İyi" : "Good"}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSrsReview(activeCard, 5)}
+                className="px-3.5 py-2 rounded-full st-accent-bg text-white text-xs font-bold cursor-pointer"
+              >
+                {lang === "tr" ? "Kolay" : "Easy"}
               </button>
               <button
                 type="button"
@@ -385,10 +426,9 @@ export default function VocabularyView() {
                   setCardIdx((i) => (i + 1) % studyDeck.length);
                   setFlipped(false);
                 }}
-                className="px-4 py-2.5 rounded-full st-accent-bg text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                className="px-3 py-2 rounded-full st-surface border st-border text-xs font-bold st-muted hover:st-ink flex items-center gap-1 cursor-pointer"
               >
                 <RotateCw className="w-3.5 h-3.5" />
-                {lang === "tr" ? "Sonraki" : "Next"}
               </button>
             </div>
           </div>
@@ -397,10 +437,15 @@ export default function VocabularyView() {
         <>
           {/* Filters */}
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {(
                 [
                   { id: "all", label: lang === "tr" ? "Tümü" : "All", count: words.length },
+                  {
+                    id: "due",
+                    label: lang === "tr" ? "Bugün Tekrar (SRS)" : "Due Today (SRS)",
+                    count: dueWords.length,
+                  },
                   {
                     id: "learning",
                     label: lang === "tr" ? "Öğreniliyor" : "Learning",

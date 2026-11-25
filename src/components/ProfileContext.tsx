@@ -9,9 +9,12 @@ interface ProfileContextType {
   loading: boolean;
   showPickerModal: boolean;
   setShowPickerModal: (open: boolean) => void;
-  switchProfile: (profileId: string) => Promise<boolean>;
+  pendingPinProfileId: string | null;
+  pinError: string | null;
+  clearPendingPin: () => void;
+  switchProfile: (profileId: string, pin?: string) => Promise<boolean>;
   addProfile: (input: { name: string; avatar?: string; color?: string; isKid?: boolean }) => Promise<{ success: boolean; error?: string }>;
-  editProfile: (id: string, patch: { name?: string; avatar?: string; color?: string; isKid?: boolean }) => Promise<{ success: boolean; error?: string }>;
+  editProfile: (id: string, patch: { name?: string; avatar?: string; color?: string; isKid?: boolean; pin?: string; dailyLimitMinutes?: number | null }) => Promise<{ success: boolean; error?: string }>;
   removeProfile: (id: string) => Promise<{ success: boolean; error?: string }>;
   refreshProfiles: () => Promise<void>;
 }
@@ -23,6 +26,13 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const [activeProfile, setActiveProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [showPickerModal, setShowPickerModal] = useState(false);
+  const [pendingPinProfileId, setPendingPinProfileId] = useState<string | null>(null);
+  const [pinError, setPinError] = useState<string | null>(null);
+
+  const clearPendingPin = () => {
+    setPendingPinProfileId(null);
+    setPinError(null);
+  };
 
   const refreshProfiles = useCallback(async () => {
     try {
@@ -51,17 +61,25 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
     refreshProfiles();
   }, [refreshProfiles]);
 
-  const switchProfile = async (profileId: string): Promise<boolean> => {
+  const switchProfile = async (profileId: string, pin?: string): Promise<boolean> => {
     try {
       const res = await fetch("/api/profiles/switch", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ profileId }),
+        body: JSON.stringify({ profileId, pin }),
       });
+      const data = await res.json();
+      if (res.status === 403 && data?.pinRequired) {
+        setPendingPinProfileId(profileId);
+        setPinError(pin ? (data.error || "Hatalı PIN kodu") : null);
+        setShowPickerModal(true);
+        return false;
+      }
       if (res.ok) {
-        const data = await res.json();
         setActiveProfile(data.activeProfile);
         setProfiles(data.profiles);
+        setPendingPinProfileId(null);
+        setPinError(null);
         if (typeof window !== "undefined") {
           sessionStorage.setItem("storytel_profile_chosen", "true");
         }
@@ -101,7 +119,14 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
 
   const editProfile = async (
     id: string,
-    patch: { name?: string; avatar?: string; color?: string; isKid?: boolean },
+    patch: {
+      name?: string;
+      avatar?: string;
+      color?: string;
+      isKid?: boolean;
+      pin?: string;
+      dailyLimitMinutes?: number | null;
+    },
   ): Promise<{ success: boolean; error?: string }> => {
     try {
       const res = await fetch("/api/profiles", {
@@ -149,6 +174,9 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
         loading,
         showPickerModal,
         setShowPickerModal,
+        pendingPinProfileId,
+        pinError,
+        clearPendingPin,
         switchProfile,
         addProfile,
         editProfile,

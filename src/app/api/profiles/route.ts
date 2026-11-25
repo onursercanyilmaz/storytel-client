@@ -7,6 +7,7 @@ import {
   getActiveProfile,
   getProfilesStore,
   MAX_PROFILES,
+  sanitizeProfile,
   updateProfile,
 } from "@/lib/profiles";
 
@@ -23,6 +24,8 @@ const updateSchema = z.object({
   avatar: z.string().optional(),
   color: z.string().optional(),
   isKid: z.boolean().optional(),
+  pin: z.string().max(6).optional(),
+  dailyLimitMinutes: z.number().min(5).max(300).nullable().optional(),
   preferences: z
     .object({
       theme: z.enum(["dark", "light"]).optional(),
@@ -40,8 +43,8 @@ export async function GET() {
   const activeProfile = getActiveProfile();
 
   return NextResponse.json({
-    profiles: store.profiles,
-    activeProfile,
+    profiles: store.profiles.map(sanitizeProfile),
+    activeProfile: sanitizeProfile(activeProfile),
     activeProfileId: store.activeProfileId,
     maxProfiles: MAX_PROFILES,
   });
@@ -69,9 +72,9 @@ export async function POST(request: Request) {
     const store = getProfilesStore();
     return NextResponse.json({
       ok: true,
-      profile: res.profile,
-      profiles: store.profiles,
-      activeProfile: getActiveProfile(),
+      profile: res.profile ? sanitizeProfile(res.profile) : undefined,
+      profiles: store.profiles.map(sanitizeProfile),
+      activeProfile: sanitizeProfile(getActiveProfile()),
     });
   } catch {
     return NextResponse.json({ error: "Profil oluşturulamadı" }, { status: 500 });
@@ -100,9 +103,9 @@ export async function PUT(request: Request) {
     const store = getProfilesStore();
     return NextResponse.json({
       ok: true,
-      profile: res.profile,
-      profiles: store.profiles,
-      activeProfile: getActiveProfile(),
+      profile: res.profile ? sanitizeProfile(res.profile) : undefined,
+      profiles: store.profiles.map(sanitizeProfile),
+      activeProfile: sanitizeProfile(getActiveProfile()),
     });
   } catch {
     return NextResponse.json({ error: "Profil güncellenemedi" }, { status: 500 });
@@ -128,8 +131,8 @@ export async function DELETE(request: Request) {
     const store = getProfilesStore();
     return NextResponse.json({
       ok: true,
-      profiles: store.profiles,
-      activeProfile: getActiveProfile(),
+      profiles: store.profiles.map(sanitizeProfile),
+      activeProfile: sanitizeProfile(getActiveProfile()),
     });
   } catch {
     return NextResponse.json({ error: "Profil silinemedi" }, { status: 500 });

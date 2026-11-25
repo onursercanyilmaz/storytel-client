@@ -4,7 +4,9 @@ import path from "path";
 import { DATA_DIR, ensureDataDirs } from "./paths";
 import { getActiveProfile, getProfileDir } from "./profiles";
 import type {
+  BookHighlight,
   CustomCollection,
+  HighlightColor,
   ListeningStats,
   VocabEntry,
 } from "./storytel/types";
@@ -63,6 +65,12 @@ function getScopedPositionsPath(profileId?: string): string {
   const pid = profileId || getActiveProfile().id;
   const dir = getProfileDir(pid);
   return path.join(dir, "playback-positions.json");
+}
+
+function getScopedHighlightsPath(profileId?: string): string {
+  const pid = profileId || getActiveProfile().id;
+  const dir = getProfileDir(pid);
+  return path.join(dir, "highlights.json");
 }
 
 function readJson<T>(filePath: string, fallback: T): T {
@@ -338,7 +346,16 @@ export function addVocabEntry(
 
 export function updateVocabEntry(
   id: string,
-  patch: { word?: string; meaning?: string; context?: string; mastered?: boolean },
+  patch: {
+    word?: string;
+    meaning?: string;
+    context?: string;
+    mastered?: boolean;
+    srsInterval?: number;
+    srsEase?: number;
+    srsReps?: number;
+    nextReviewAt?: string;
+  },
   profileId?: string,
 ): VocabEntry | null {
   const p = getScopedVocabPath(profileId);
@@ -358,6 +375,18 @@ export function updateVocabEntry(
   if (typeof patch.mastered === "boolean") {
     item.mastered = patch.mastered;
   }
+  if (typeof patch.srsInterval === "number") {
+    item.srsInterval = patch.srsInterval;
+  }
+  if (typeof patch.srsEase === "number") {
+    item.srsEase = patch.srsEase;
+  }
+  if (typeof patch.srsReps === "number") {
+    item.srsReps = patch.srsReps;
+  }
+  if (typeof patch.nextReviewAt === "string") {
+    item.nextReviewAt = patch.nextReviewAt;
+  }
 
   writeJson(p, list);
   return item;
@@ -367,6 +396,70 @@ export function deleteVocabEntry(id: string, profileId?: string): boolean {
   const p = getScopedVocabPath(profileId);
   const list = getVocabulary(profileId);
   const next = list.filter((v) => v.id !== id);
+  if (next.length === list.length) return false;
+  writeJson(p, next);
+  return true;
+}
+
+export function updateListeningGoals(
+  goals: { dailyGoalMinutes?: number; yearlyBookGoal?: number },
+  profileId?: string,
+): ListeningStats {
+  const p = getScopedStatsPath(profileId);
+  const stats = getListeningStats(profileId);
+  if (typeof goals.dailyGoalMinutes === "number" && goals.dailyGoalMinutes >= 5) {
+    stats.dailyGoalMinutes = Math.min(600, Math.round(goals.dailyGoalMinutes));
+  }
+  if (typeof goals.yearlyBookGoal === "number" && goals.yearlyBookGoal >= 1) {
+    stats.yearlyBookGoal = Math.min(500, Math.round(goals.yearlyBookGoal));
+  }
+  writeJson(p, stats);
+  return stats;
+}
+
+// --- E-Book Highlights & Margin Notes ---
+
+export function getHighlights(bookId?: string, profileId?: string): BookHighlight[] {
+  const p = getScopedHighlightsPath(profileId);
+  const list = readJson<BookHighlight[]>(p, []);
+  const arr = Array.isArray(list) ? list : [];
+  return bookId ? arr.filter((h) => h.bookId === bookId) : arr;
+}
+
+export function addHighlight(
+  input: {
+    bookId: string;
+    bookTitle?: string;
+    chapterIndex: number;
+    chapterTitle?: string;
+    text: string;
+    note?: string;
+    color?: HighlightColor;
+  },
+  profileId?: string,
+): BookHighlight {
+  const p = getScopedHighlightsPath(profileId);
+  const list = getHighlights(undefined, profileId);
+  const entry: BookHighlight = {
+    id: crypto.randomUUID(),
+    bookId: input.bookId,
+    bookTitle: input.bookTitle,
+    chapterIndex: input.chapterIndex,
+    chapterTitle: input.chapterTitle,
+    text: input.text.trim(),
+    note: input.note?.trim() || undefined,
+    color: input.color || "yellow",
+    createdAt: new Date().toISOString(),
+  };
+  list.unshift(entry);
+  writeJson(p, list);
+  return entry;
+}
+
+export function deleteHighlight(id: string, profileId?: string): boolean {
+  const p = getScopedHighlightsPath(profileId);
+  const list = getHighlights(undefined, profileId);
+  const next = list.filter((h) => h.id !== id);
   if (next.length === list.length) return false;
   writeJson(p, next);
   return true;

@@ -112,6 +112,8 @@ export interface ActiveDownload {
 export interface ListeningStats {
   totalSeconds: number;
   dailySeconds: Record<string, number>; // YYYY-MM-DD -> seconds
+  dailyGoalMinutes?: number;
+  yearlyBookGoal?: number;
   recentBooks: {
     id: string;
     title: string;
@@ -133,4 +135,33 @@ export interface VocabEntry {
   bookTitle?: string;
   mastered: boolean;
   createdAt: string;
+  srsInterval?: number; // days
+  srsEase?: number; // SM-2 ease factor (default 2.5)
+  srsReps?: number;
+  nextReviewAt?: string; // ISO date
+}
+
+export type HighlightColor = "yellow" | "green" | "pink" | "blue";
+
+export interface BookHighlight {
+  id: string;
+  bookId: string;
+  bookTitle?: string;
+  chapterIndex: number;
+  chapterTitle?: string;
+  text: string;
+  note?: string;
+  color: HighlightColor;
+  createdAt: string;
+}
+
+export interface LocalAudiobook {
+  id: string;
+  title: string;
+  authors: string;
+  fileName: string;
+  filePath: string;
+  bytes: number;
+  format: "mp3" | "m4b" | "m4a";
+  addedAt: string;
 }

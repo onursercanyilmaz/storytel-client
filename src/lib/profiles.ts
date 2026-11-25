@@ -80,16 +80,63 @@ export function saveProfilesStore(data: ProfilesStoreData): void {
   fs.writeFileSync(PROFILES_PATH, JSON.stringify(data, null, 2), "utf8");
 }
 
+export function hashPin(pin: string): string {
+  return crypto.createHash("sha256").update(`st-pin:${pin}`).digest("hex");
+}
+
+export function sanitizeProfile(p: UserProfile): UserProfile {
+  const { pinHash, ...rest } = p;
+  return {
+    ...rest,
+    hasPin: Boolean(pinHash),
+  };
+}
+
 export function getActiveProfile(): UserProfile {
   const store = getProfilesStore();
   const found = store.profiles.find((p) => p.id === store.activeProfileId);
   return found || store.profiles[0] || getDefaultProfiles().profiles[0];
 }
 
-export function switchActiveProfile(profileId: string): UserProfile | null {
+export function isPinRequiredForSwitch(targetId: string): boolean {
   const store = getProfilesStore();
+  const current = store.profiles.find((p) => p.id === store.activeProfileId);
+  const target = store.profiles.find((p) => p.id === targetId);
+  if (!target) return false;
+  if (target.pinHash) return true;
+  if (current?.isKid && !target.isKid) {
+    const main = store.profiles.find((p) => p.isMain);
+    if (main?.pinHash) return true;
+  }
+  return false;
+}
+
+export function verifyProfilePin(profileId: string, pin?: string): boolean {
+  if (!pin) return false;
+  const store = getProfilesStore();
+  const profile = store.profiles.find((p) => p.id === profileId);
+  if (!profile?.pinHash) return true;
+  return profile.pinHash === hashPin(pin);
+}
+
+export function switchActiveProfile(
+  profileId: string,
+  pin?: string,
+): UserProfile | null {
+  const store = getProfilesStore();
+  const current = store.profiles.find((p) => p.id === store.activeProfileId);
   const target = store.profiles.find((p) => p.id === profileId);
   if (!target) return null;
+
+  if (target.pinHash && target.pinHash !== hashPin(pin || "")) {
+    return null;
+  }
+  if (current?.isKid && !target.isKid) {
+    const main = store.profiles.find((p) => p.isMain);
+    if (main?.pinHash && main.pinHash !== hashPin(pin || "")) {
+      return null;
+    }
+  }
 
   store.activeProfileId = target.id;
   saveProfilesStore(store);
@@ -144,6 +191,8 @@ export function updateProfile(
     avatar?: string;
     color?: string;
     isKid?: boolean;
+    pin?: string;
+    dailyLimitMinutes?: number | null;
     preferences?: ProfilePreferences;
   },
 ): { profile?: UserProfile; error?: string } {
@@ -162,6 +211,21 @@ export function updateProfile(
   }
   if (typeof patch.isKid === "boolean" && !profile.isMain) {
     profile.isKid = patch.isKid;
+  }
+  if (typeof patch.pin === "string") {
+    const cleanPin = patch.pin.trim();
+    if (!cleanPin) {
+      delete profile.pinHash;
+    } else if (/^\d{4,6}$/.test(cleanPin)) {
+      profile.pinHash = hashPin(cleanPin);
+    } else {
+      return { error: "PIN 4-6 haneli rakamlardan oluşmalıdır." };
+    }
+  }
+  if (patch.dailyLimitMinutes === null) {
+    delete profile.dailyLimitMinutes;
+  } else if (typeof patch.dailyLimitMinutes === "number") {
+    profile.dailyLimitMinutes = Math.max(5, Math.min(300, Math.round(patch.dailyLimitMinutes)));
   }
   if (patch.preferences) {
     profile.preferences = { ...profile.preferences, ...patch.preferences };

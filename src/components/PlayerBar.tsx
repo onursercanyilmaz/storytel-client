@@ -43,6 +43,8 @@ export default function PlayerBar({ onOpenBookDetail }: PlayerBarProps) {
     playbackRate,
     volume,
     isMuted,
+    voiceBoost,
+    silenceTrim,
     chapters,
     activeChapter,
     bookmarks,
@@ -54,6 +56,8 @@ export default function PlayerBar({ onOpenBookDetail }: PlayerBarProps) {
     setPlaybackRate,
     setVolume,
     toggleMute,
+    setVoiceBoost,
+    setSilenceTrim,
     setSleepMinutes,
     setSleepEndOfChapter,
     jumpToChapter,
@@ -210,6 +214,33 @@ export default function PlayerBar({ onOpenBookDetail }: PlayerBarProps) {
                   {rate}x
                 </button>
               ))}
+            </div>
+
+            <div className="pt-3 border-t st-border space-y-2">
+              <button
+                type="button"
+                onClick={() => setVoiceBoost(!voiceBoost)}
+                className={`w-full px-3 py-2 rounded-xl border text-xs font-bold flex items-center justify-between transition cursor-pointer ${
+                  voiceBoost
+                    ? "st-accent-soft border-[#FF5500]/40 text-[#FF5500]"
+                    : "st-bg st-border st-ink hover:border-[#FF5500]/40"
+                }`}
+              >
+                <span>🎙️ Ses Netleştirme (Voice Boost)</span>
+                <span>{voiceBoost ? "Açık" : "Kapalı"}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSilenceTrim(!silenceTrim)}
+                className={`w-full px-3 py-2 rounded-xl border text-xs font-bold flex items-center justify-between transition cursor-pointer ${
+                  silenceTrim
+                    ? "st-accent-soft border-[#FF5500]/40 text-[#FF5500]"
+                    : "st-bg st-border st-ink hover:border-[#FF5500]/40"
+                }`}
+              >
+                <span>⚡ Sessizlik Kısaltma (Smart Speed)</span>
+                <span>{silenceTrim ? "Açık" : "Kapalı"}</span>
+              </button>
             </div>
           </div>
         )}

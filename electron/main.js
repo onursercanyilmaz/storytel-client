@@ -1,9 +1,12 @@
-const { app, BrowserWindow, shell } = require("electron");
+const { app, BrowserWindow, Menu, Tray, dialog, nativeImage, shell } = require("electron");
 const path = require("path");
 const http = require("http");
+const https = require("https");
 const fs = require("fs");
 
 let mainWindow = null;
+let tray = null;
+let isQuitting = false;
 let serverProcess = null;
 const PORT = 38421;
 const SERVER_URL = `http://127.0.0.1:${PORT}`;
@@ -98,9 +101,107 @@ function createMainWindow() {
     return { action: "deny" };
   });
 
+  mainWindow.on("close", (e) => {
+    if (!isQuitting && tray) {
+      e.preventDefault();
+      mainWindow.hide();
+    }
+  });
+
   mainWindow.on("closed", () => {
     mainWindow = null;
   });
+}
+
+function getAppIconPath() {
+  const candidates = [
+    path.join(process.resourcesPath || "", "app.asar.unpacked", ".next", "standalone", "public", "icon.png"),
+    path.join(__dirname, "..", "public", "icon.png"),
+  ];
+  for (const p of candidates) {
+    try {
+      if (fs.existsSync(p)) return p;
+    } catch {}
+  }
+  return candidates[1];
+}
+
+function createTray() {
+  try {
+    const icon = nativeImage.createFromPath(getAppIconPath()).resize({ width: 16, height: 16 });
+    tray = new Tray(icon);
+    tray.setToolTip("Storytel Client");
+    const menu = Menu.buildFromTemplate([
+      {
+        label: "Storytel Client'ı Göster",
+        click: () => {
+          if (mainWindow) {
+            mainWindow.show();
+            mainWindow.focus();
+          } else {
+            createMainWindow();
+          }
+        },
+      },
+      { type: "separator" },
+      {
+        label: "Çıkış",
+        click: () => {
+          isQuitting = true;
+          app.quit();
+        },
+      },
+    ]);
+    tray.setContextMenu(menu);
+    tray.on("click", () => {
+      if (mainWindow) {
+        if (mainWindow.isVisible()) mainWindow.focus();
+        else {
+          mainWindow.show();
+          mainWindow.focus();
+        }
+      }
+    });
+  } catch (err) {
+    console.warn("[Electron] Tray init skipped:", err?.message || err);
+  }
+}
+
+function checkForUpdates() {
+  try {
+    const req = https.get(
+      "https://api.github.com/repos/onursercanyilmaz/storytel-client/releases/latest",
+      { headers: { "User-Agent": "storytel-client-desktop" }, timeout: 8000 },
+      (res) => {
+        if (res.statusCode !== 200) return;
+        let raw = "";
+        res.on("data", (chunk) => (raw += chunk));
+        res.on("end", () => {
+          try {
+            const rel = JSON.parse(raw);
+            const latestTag = String(rel.tag_name || "").replace(/^v/, "");
+            const current = app.getVersion();
+            if (latestTag && latestTag !== current && latestTag > current) {
+              dialog
+                .showMessageBox(mainWindow, {
+                  type: "info",
+                  title: "Güncelleme Mevcut",
+                  message: `Storytel Client v${latestTag} yayınlandı (Mevcut: v${current}).`,
+                  buttons: ["İndirme Sayfasını Aç", "Daha Sonra"],
+                  defaultId: 0,
+                })
+                .then(({ response }) => {
+                  if (response === 0) {
+                    shell.openExternal("https://github.com/onursercanyilmaz/storytel-client/releases/latest");
+                  }
+                });
+            }
+          } catch {}
+        });
+      },
+    );
+    req.on("error", () => {});
+  } catch {}
 }
 
 const gotTheLock = app.requestSingleInstanceLock();
@@ -110,6 +211,7 @@ if (!gotTheLock) {
 } else {
   app.on("second-instance", () => {
     if (mainWindow) {
+      if (!mainWindow.isVisible()) mainWindow.show();
       if (mainWindow.isMinimized()) mainWindow.restore();
       mainWindow.focus();
     }
@@ -119,6 +221,8 @@ if (!gotTheLock) {
     try {
       await startNextServer();
       createMainWindow();
+      createTray();
+      setTimeout(checkForUpdates, 5000);
     } catch (err) {
       console.error("[Electron] Failed to start:", err);
       app.quit();
@@ -126,7 +230,7 @@ if (!gotTheLock) {
   });
 
   app.on("window-all-closed", () => {
-    if (process.platform !== "darwin") {
+    if (process.platform !== "darwin" && (isQuitting || !tray)) {
       app.quit();
     }
   });
@@ -134,10 +238,13 @@ if (!gotTheLock) {
   app.on("activate", () => {
     if (mainWindow === null) {
       createMainWindow();
+    } else {
+      mainWindow.show();
     }
   });
 
   app.on("before-quit", () => {
+    isQuitting = true;
     if (serverProcess) {
       try {
         serverProcess.kill();

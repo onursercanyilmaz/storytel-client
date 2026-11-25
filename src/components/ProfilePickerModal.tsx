@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Check, Edit2, Plus, ShieldCheck, Trash2, X } from "lucide-react";
+import { Check, Edit2, Lock, Plus, ShieldCheck, Trash2, X } from "lucide-react";
 import { MAX_PROFILES, PRESET_AVATARS, type UserProfile } from "@/lib/profile-types";
 import { useProfiles } from "./ProfileContext";
 
@@ -11,6 +11,9 @@ export default function ProfilePickerModal() {
     activeProfile,
     showPickerModal,
     setShowPickerModal,
+    pendingPinProfileId,
+    pinError,
+    clearPendingPin,
     switchProfile,
     addProfile,
     editProfile,
@@ -20,12 +23,15 @@ export default function ProfilePickerModal() {
   const [isManaging, setIsManaging] = useState(false);
   const [editingProfile, setEditingProfile] = useState<UserProfile | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [pinInput, setPinInput] = useState("");
 
   // Form states for Add / Edit
   const [formName, setFormName] = useState("");
   const [formAvatar, setFormAvatar] = useState("👤");
   const [formColor, setFormColor] = useState("#FF5500");
   const [formIsKid, setFormIsKid] = useState(false);
+  const [formPin, setFormPin] = useState("");
+  const [formDailyLimit, setFormDailyLimit] = useState<string>("");
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -36,6 +42,8 @@ export default function ProfilePickerModal() {
     setFormAvatar("🎧");
     setFormColor("#2979FF");
     setFormIsKid(false);
+    setFormPin("");
+    setFormDailyLimit("");
     setFormError(null);
     setShowAddForm(true);
     setEditingProfile(null);
@@ -47,6 +55,8 @@ export default function ProfilePickerModal() {
     setFormAvatar(profile.avatar);
     setFormColor(profile.color);
     setFormIsKid(profile.isKid);
+    setFormPin("");
+    setFormDailyLimit(profile.dailyLimitMinutes ? String(profile.dailyLimitMinutes) : "");
     setFormError(null);
     setShowAddForm(false);
   };
@@ -82,11 +92,14 @@ export default function ProfilePickerModal() {
     }
     setSubmitting(true);
     setFormError(null);
+    const limitNum = formDailyLimit.trim() ? Number(formDailyLimit.trim()) : null;
     const res = await editProfile(editingProfile.id, {
       name: formName.trim(),
       avatar: formAvatar,
       color: formColor,
       isKid: editingProfile.isMain ? false : formIsKid,
+      ...(formPin.trim() ? { pin: formPin.trim() } : {}),
+      dailyLimitMinutes: limitNum && !Number.isNaN(limitNum) ? limitNum : null,
     });
     setSubmitting(false);
     if (res.success) {
@@ -130,7 +143,9 @@ export default function ProfilePickerModal() {
 
         {/* Modal Header */}
         <h2 className="text-2xl sm:text-4xl font-extrabold st-ink tracking-tight mb-2">
-          {showAddForm
+          {pendingPinProfileId
+            ? "Ebeveyn / Profil PIN'i"
+            : showAddForm
             ? "Yeni Profil Ekle"
             : editingProfile
             ? "Profili Düzenle"
@@ -139,17 +154,67 @@ export default function ProfilePickerModal() {
             : "Kim Dinliyor?"}
         </h2>
         <p className="text-sm st-muted mb-8 max-w-md mx-auto">
-          {showAddForm
+          {pendingPinProfileId
+            ? "Bu profile geçiş yapmak için 4-6 haneli PIN kodunu girin."
+            : showAddForm
             ? "Her profil kendi dinleme geçmişine, kaldığı yere ve favorilerine sahiptir."
             : editingProfile
-            ? "Profil adını, avatarını ve çocuk filtresini özelleştirin."
+            ? "Profil adını, avatarını ve güvenlik/limit ayarlarını özelleştirin."
             : isManaging
             ? "Düzenlemek istediğiniz profilin üzerine dokunun."
             : "Kendi kitaplığın, favorilerin ve kaldığın yer için profilini seç."}
         </p>
 
-        {/* Form: Add or Edit */}
-        {showAddForm || editingProfile ? (
+        {/* PIN Prompt View */}
+        {pendingPinProfileId ? (
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              if (!pinInput.trim()) return;
+              const ok = await switchProfile(pendingPinProfileId, pinInput.trim());
+              if (ok) setPinInput("");
+            }}
+            className="max-w-xs mx-auto space-y-4 animate-in zoom-in-95 duration-150"
+          >
+            <div className="w-14 h-14 rounded-2xl st-accent-soft text-[#FF5500] flex items-center justify-center mx-auto">
+              <Lock className="w-7 h-7" />
+            </div>
+            {pinError && (
+              <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-500 text-xs font-semibold">
+                {pinError}
+              </div>
+            )}
+            <input
+              type="password"
+              inputMode="numeric"
+              pattern="\d{4,6}"
+              maxLength={6}
+              value={pinInput}
+              onChange={(e) => setPinInput(e.target.value.replace(/\D/g, ""))}
+              placeholder="4-6 haneli PIN"
+              autoFocus
+              className="w-full px-4 py-3 rounded-xl st-bg border st-border st-ink text-center text-lg tracking-[0.4em] font-mono focus:outline-none focus:border-[#FF5500]"
+            />
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setPinInput("");
+                  clearPendingPin();
+                }}
+                className="flex-1 py-2.5 rounded-xl st-bg border st-border text-xs font-bold st-muted hover:st-ink cursor-pointer"
+              >
+                Vazgeç
+              </button>
+              <button
+                type="submit"
+                className="flex-1 py-2.5 rounded-xl st-accent-bg text-white text-xs font-bold shadow cursor-pointer"
+              >
+                Doğrula
+              </button>
+            </div>
+          </form>
+        ) : showAddForm || editingProfile ? (
           <form
             onSubmit={showAddForm ? handleSaveAdd : handleSaveEdit}
             className="max-w-md mx-auto text-left space-y-5 animate-in zoom-in-95 duration-150"
@@ -233,6 +298,58 @@ export default function ProfilePickerModal() {
                   </div>
                 </div>
               </label>
+            )}
+
+            {/* Parental / Profile PIN & Kid Daily Limit (Edit mode) */}
+            {editingProfile && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold st-muted uppercase tracking-wider mb-1">
+                    {editingProfile.hasPin ? "PIN Değiştir (opsiyonel)" : "Profil / Ebeveyn PIN'i"}
+                  </label>
+                  <div className="flex gap-1.5">
+                    <input
+                      type="password"
+                      inputMode="numeric"
+                      maxLength={6}
+                      value={formPin}
+                      onChange={(e) => setFormPin(e.target.value.replace(/\D/g, ""))}
+                      placeholder={editingProfile.hasPin ? "••••" : "4-6 rakam"}
+                      className="w-full px-3 py-2 rounded-xl st-bg border st-border st-ink text-xs font-mono focus:outline-none focus:border-[#FF5500]"
+                    />
+                    {editingProfile.hasPin && (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          await editProfile(editingProfile.id, { pin: "" });
+                          setEditingProfile({ ...editingProfile, hasPin: false });
+                        }}
+                        className="px-2.5 py-2 rounded-xl st-bg border st-border text-[11px] font-bold text-red-400 hover:border-red-500 cursor-pointer shrink-0"
+                        title="PIN kilidini kaldır"
+                      >
+                        Kaldır
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {formIsKid && (
+                  <div>
+                    <label className="block text-[11px] font-bold st-muted uppercase tracking-wider mb-1">
+                      Günlük Dinleme Limiti (dk)
+                    </label>
+                    <input
+                      type="number"
+                      min={5}
+                      max={300}
+                      value={formDailyLimit}
+                      onChange={(e) => setFormDailyLimit(e.target.value)}
+                      placeholder="Örn: 30 (limitsiz için boş)"
+                      className="w-full px-3 py-2 rounded-xl st-bg border st-border st-ink text-xs focus:outline-none focus:border-[#FF5500]"
+                    />
+                  </div>
+                )}
+              </div>
             )}
 
             {/* Action Buttons */}

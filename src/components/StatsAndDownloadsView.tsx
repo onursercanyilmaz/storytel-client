@@ -1,21 +1,28 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
+  Award,
   BarChart3,
   Clock,
   Download,
+  Flame,
   HardDrive,
   Loader2,
+  Music,
   Play,
+  Target,
   Trash2,
+  Upload,
 } from "lucide-react";
 import type {
   ActiveDownload,
   BookshelfBook,
   DownloadEntry,
   ListeningStats,
+  LocalAudiobook,
 } from "@/lib/storytel/types";
+import type { StreakAndBadges } from "@/lib/srs";
 import { formatBytes, formatDurationMs } from "@/lib/format";
 import { toPlayingBook, usePlayer } from "./PlayerContext";
 
@@ -30,20 +37,50 @@ export function DownloadsView({
   const [files, setFiles] = useState<DownloadEntry[]>([]);
   const [active, setActive] = useState<ActiveDownload[]>([]);
   const [totalBytes, setTotalBytes] = useState(0);
+  const [localBooks, setLocalBooks] = useState<LocalAudiobook[]>([]);
+  const [uploadingLocal, setUploadingLocal] = useState(false);
+  const localInputRef = useRef<HTMLInputElement | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
     try {
-      const res = await fetch("/api/downloads");
-      if (res.ok) {
-        const data = await res.json();
+      const [dlRes, locRes] = await Promise.all([
+        fetch("/api/downloads"),
+        fetch("/api/local-books"),
+      ]);
+      if (dlRes.ok) {
+        const data = await dlRes.json();
         setFiles(data.files || []);
         setActive(data.active || []);
         setTotalBytes(data.totalBytes || 0);
       }
+      if (locRes.ok) {
+        const lData = await locRes.json();
+        setLocalBooks(lData.books || []);
+      }
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleLocalUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingLocal(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/local-books", { method: "POST", body: fd });
+      if (res.ok) await load();
+    } finally {
+      setUploadingLocal(false);
+      e.target.value = "";
+    }
+  };
+
+  const handleDeleteLocal = async (id: string) => {
+    await fetch(`/api/local-books?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+    await load();
   };
 
   useEffect(() => {
@@ -198,30 +235,160 @@ export function DownloadsView({
           })}
         </div>
       )}
+
+      {/* Local DRM-Free Audiobooks (.mp3 / .m4b / .m4a) */}
+      <div className="pt-4 border-t st-border space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 className="text-sm font-bold st-ink flex items-center gap-2">
+              <Music className="w-4 h-4 text-[#FF5500]" />
+              Yerel Sesli Kitapların (.mp3 / .m4b / .m4a)
+            </h3>
+            <p className="text-xs st-muted mt-0.5">
+              Bilgisayarındaki kendi sesli kitaplarını içe aktarıp aynı oynatıcıda dinle.
+            </p>
+          </div>
+          <input
+            ref={localInputRef}
+            type="file"
+            accept=".mp3,.m4b,.m4a,audio/*"
+            onChange={handleLocalUpload}
+            className="hidden"
+          />
+          <button
+            type="button"
+            disabled={uploadingLocal}
+            onClick={() => localInputRef.current?.click()}
+            className="px-4 py-2 rounded-full st-accent-bg text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+          >
+            {uploadingLocal ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+            Ses Dosyası Ekle
+          </button>
+        </div>
+
+        {localBooks.length > 0 && (
+          <div className="space-y-2.5">
+            {localBooks.map((lb) => (
+              <div
+                key={lb.id}
+                className="p-3.5 rounded-2xl st-surface border st-border flex items-center justify-between gap-4"
+              >
+                <div className="min-w-0">
+                  <div className="font-semibold text-sm st-ink truncate">{lb.title}</div>
+                  <div className="text-xs st-muted mt-0.5">
+                    {lb.format.toUpperCase()} • {formatBytes(lb.bytes)}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      playBook({
+                        id: lb.id,
+                        title: lb.title,
+                        authors: lb.authors,
+                        coverUrl: "",
+                        durationMs: 0,
+                      })
+                    }
+                    className="px-4 py-2 rounded-full st-accent-bg text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Play className="w-3.5 h-3.5 fill-current" />
+                    Dinle
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteLocal(lb.id)}
+                    className="p-2 rounded-full st-bg border st-border st-muted hover:text-red-500 transition cursor-pointer"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
+
+type StatsPayload = ListeningStats & { streaksAndBadges?: StreakAndBadges };
 
 export function StatsView({
   onOpenDetail,
 }: {
   onOpenDetail: (bookId: string) => void;
 }) {
-  const [stats, setStats] = useState<ListeningStats | null>(null);
+  const [stats, setStats] = useState<StatsPayload | null>(null);
+  const [goalInput, setGoalInput] = useState("20");
+  const [backupMsg, setBackupMsg] = useState<string | null>(null);
+  const backupInputRef = useRef<HTMLInputElement | null>(null);
+
+  const loadStats = () => {
+    fetch("/api/stats")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: StatsPayload | null) => {
+        if (data) {
+          setStats(data);
+          if (data.dailyGoalMinutes) setGoalInput(String(data.dailyGoalMinutes));
+        }
+      })
+      .catch(() => {});
+  };
 
   useEffect(() => {
-    const loadStats = () => {
-      fetch("/api/stats")
-        .then((r) => (r.ok ? r.json() : null))
-        .then((data) => {
-          if (data) setStats(data);
-        })
-        .catch(() => {});
-    };
     loadStats();
     window.addEventListener("profile-switched", loadStats);
     return () => window.removeEventListener("profile-switched", loadStats);
   }, []);
+
+  const handleSaveGoal = async () => {
+    const mins = Math.max(5, Math.min(600, Number(goalInput) || 20));
+    const res = await fetch("/api/stats", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ dailyGoalMinutes: mins }),
+    });
+    if (res.ok) setStats(await res.json());
+  };
+
+  const handleExportBackup = async () => {
+    const res = await fetch("/api/backup");
+    if (!res.ok) return;
+    const data = await res.json();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `storytel-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportBackup = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const json = JSON.parse(text);
+      const res = await fetch("/api/backup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(json),
+      });
+      if (res.ok) {
+        setBackupMsg("Yedek başarıyla geri yüklendi! Sayfa yenileniyor...");
+        setTimeout(() => window.location.reload(), 1000);
+      } else {
+        setBackupMsg("Geçersiz yedek dosyası.");
+      }
+    } catch {
+      setBackupMsg("Yedek dosyası okunamadı.");
+    } finally {
+      e.target.value = "";
+    }
+  };
 
   if (!stats) {
     return (
@@ -244,10 +411,13 @@ export function StatsView({
   const totalHours = (stats.totalSeconds / 3600).toFixed(1);
   const todayKey = new Date().toISOString().slice(0, 10);
   const todayMins = Math.round((stats.dailySeconds[todayKey] || 0) / 60);
+  const sb = stats.streaksAndBadges;
+  const dailyGoal = sb?.dailyGoalMinutes ?? stats.dailyGoalMinutes ?? 20;
+  const goalPct = Math.min(100, Math.round((todayMins / Math.max(1, dailyGoal)) * 100));
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <div className="p-5 rounded-3xl st-surface border st-border shadow-sm">
           <div className="text-xs font-semibold st-muted flex items-center gap-1.5">
             <Clock className="w-3.5 h-3.5 text-[#FF5500]" />
@@ -267,12 +437,82 @@ export function StatsView({
           </div>
         </div>
         <div className="p-5 rounded-3xl st-surface border st-border shadow-sm">
+          <div className="text-xs font-semibold st-muted flex items-center gap-1.5">
+            <Flame className="w-3.5 h-3.5 text-amber-500" />
+            Dinleme Serisi
+          </div>
+          <div className="font-serif-st text-3xl font-bold st-ink mt-2">
+            {sb?.currentStreakDays ?? 0} gün
+          </div>
+          <div className="text-[11px] st-muted mt-1">
+            En uzun: {sb?.longestStreakDays ?? 0} gün
+          </div>
+        </div>
+        <div className="p-5 rounded-3xl st-surface border st-border shadow-sm">
           <div className="text-xs font-semibold st-muted">Son Dinlenenler</div>
           <div className="font-serif-st text-3xl font-bold st-ink mt-2">
             {stats.recentBooks.length}
           </div>
         </div>
       </div>
+
+      {/* Daily Goal Progress */}
+      <div className="p-5 rounded-3xl st-surface border st-border shadow-sm space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-sm font-bold st-ink">
+            <Target className="w-4 h-4 text-[#FF5500]" />
+            <span>Günlük Dinleme Hedefi ({todayMins} / {dailyGoal} dk · %{goalPct})</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              min={5}
+              max={600}
+              value={goalInput}
+              onChange={(e) => setGoalInput(e.target.value)}
+              className="w-20 px-2.5 py-1 rounded-xl st-bg border st-border text-xs st-ink"
+            />
+            <button
+              type="button"
+              onClick={handleSaveGoal}
+              className="px-3 py-1 rounded-xl st-accent-bg text-white text-xs font-bold cursor-pointer"
+            >
+              Kaydet
+            </button>
+          </div>
+        </div>
+        <div className="h-2.5 rounded-full st-bg overflow-hidden">
+          <div
+            className="h-full bg-[#FF5500] transition-all"
+            style={{ width: `${goalPct}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Achievement Badges */}
+      {sb && sb.badges.length > 0 && (
+        <div className="p-5 rounded-3xl st-surface border st-border shadow-sm space-y-3">
+          <h3 className="font-serif-st text-base font-bold st-ink flex items-center gap-2">
+            <Award className="w-4 h-4 text-[#FF5500]" />
+            Başarım Rozetleri
+          </h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+            {sb.badges.map((b) => (
+              <div
+                key={b.id}
+                className={`p-3 rounded-2xl border text-center transition ${
+                  b.unlocked
+                    ? "st-accent-soft border-[#FF5500]/40 st-ink"
+                    : "st-bg st-border opacity-45 grayscale"
+                }`}
+              >
+                <div className="text-2xl">{b.icon}</div>
+                <div className="text-[11px] font-bold mt-1.5">{b.titleTr}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="p-6 rounded-3xl st-surface border st-border shadow-sm">
         <h3 className="font-serif-st text-base font-bold st-ink mb-5">
@@ -338,6 +578,42 @@ export function StatsView({
           </div>
         </div>
       )}
+
+      {/* Full Backup Export / Import */}
+      <div className="p-5 rounded-3xl st-surface border st-border shadow-sm flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <div className="text-sm font-bold st-ink">Tam Yedekleme & Taşıma (JSON)</div>
+          <div className="text-xs st-muted mt-0.5">
+            Tüm profilleri, kelime defterlerini, vurguları, koleksiyonları ve istatistikleri dışa aktar veya geri yükle.
+          </div>
+          {backupMsg && <div className="text-xs text-[#FF5500] font-semibold mt-1">{backupMsg}</div>}
+        </div>
+        <div className="flex items-center gap-2">
+          <input
+            ref={backupInputRef}
+            type="file"
+            accept=".json,application/json"
+            onChange={handleImportBackup}
+            className="hidden"
+          />
+          <button
+            type="button"
+            onClick={handleExportBackup}
+            className="px-4 py-2 rounded-full st-bg border st-border hover:border-[#FF5500] text-xs font-bold st-ink flex items-center gap-1.5 cursor-pointer"
+          >
+            <Download className="w-3.5 h-3.5 text-[#FF5500]" />
+            Yedek İndir
+          </button>
+          <button
+            type="button"
+            onClick={() => backupInputRef.current?.click()}
+            className="px-4 py-2 rounded-full st-accent-bg text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+          >
+            <Upload className="w-3.5 h-3.5" />
+            Yedek Yükle
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

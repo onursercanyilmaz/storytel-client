@@ -40,6 +40,8 @@ interface PlayerContextValue {
   playbackRate: number;
   volume: number;
   isMuted: boolean;
+  voiceBoost: boolean;
+  silenceTrim: boolean;
   chapters: BookChapter[];
   activeChapter: BookChapter | null;
   bookmarks: BookBookmark[];
@@ -52,6 +54,8 @@ interface PlayerContextValue {
   setPlaybackRate: (rate: number) => void;
   setVolume: (vol: number) => void;
   toggleMute: () => void;
+  setVoiceBoost: (enabled: boolean) => void;
+  setSilenceTrim: (enabled: boolean) => void;
   setSleepMinutes: (minutes: number | null) => void;
   setSleepEndOfChapter: () => void;
   jumpToChapter: (chapter: BookChapter) => void;
@@ -67,6 +71,8 @@ const PlayerContext = createContext<PlayerContextValue | null>(null);
 const RATE_STORAGE_KEY = "st_studio_playback_rate";
 const VOL_STORAGE_KEY = "st_studio_volume";
 const LAST_PLAYED_STORAGE_KEY = "st_studio_last_played";
+const VOICE_BOOST_KEY = "st_studio_voice_boost";
+const SILENCE_TRIM_KEY = "st_studio_silence_trim";
 
 export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -78,10 +84,18 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const [playbackRate, setPlaybackRateState] = useState(1);
   const [volume, setVolumeState] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
+  const [voiceBoost, setVoiceBoostState] = useState(false);
+  const [silenceTrim, setSilenceTrimState] = useState(false);
   const [chapters, setChapters] = useState<BookChapter[]>([]);
   const [bookmarks, setBookmarks] = useState<BookBookmark[]>([]);
   const [sleepTimer, setSleepTimer] = useState<SleepTimerMode>({ type: "off" });
   const [error, setError] = useState<string | null>(null);
+
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
+  const compressorRef = useRef<DynamicsCompressorNode | null>(null);
+  const boostGainRef = useRef<GainNode | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
 
   const pendingSeekRef = useRef<number | null>(null);
   const lastSyncRef = useRef<number>(0);
@@ -92,17 +106,131 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   currentBookRef.current = currentBook;
   isPlayingRef.current = isPlaying;
 
-  // Restore saved playback rate & volume
+  // Restore saved playback rate, volume, and DSP toggles
   useEffect(() => {
     try {
       const savedRate = parseFloat(localStorage.getItem(RATE_STORAGE_KEY) || "1");
       if (savedRate >= 0.5 && savedRate <= 3) setPlaybackRateState(savedRate);
       const savedVol = parseFloat(localStorage.getItem(VOL_STORAGE_KEY) || "1");
       if (savedVol >= 0 && savedVol <= 1) setVolumeState(savedVol);
+      if (localStorage.getItem(VOICE_BOOST_KEY) === "1") setVoiceBoostState(true);
+      if (localStorage.getItem(SILENCE_TRIM_KEY) === "1") setSilenceTrimState(true);
     } catch {
       // ignore
     }
   }, []);
+
+  const setVoiceBoost = useCallback((enabled: boolean) => {
+    setVoiceBoostState(enabled);
+    try {
+      localStorage.setItem(VOICE_BOOST_KEY, enabled ? "1" : "0");
+    } catch {}
+  }, []);
+
+  const setSilenceTrim = useCallback((enabled: boolean) => {
+    setSilenceTrimState(enabled);
+    try {
+      localStorage.setItem(SILENCE_TRIM_KEY, enabled ? "1" : "0");
+    } catch {}
+  }, []);
+
+  // Web Audio API Pipeline: Voice Boost (DynamicsCompressor + Gain) & Silence Trimming (AnalyserNode)
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || (!voiceBoost && !silenceTrim)) {
+      if (audio && audio.playbackRate !== playbackRate) {
+        audio.playbackRate = playbackRate;
+      }
+      if (boostGainRef.current) {
+        boostGainRef.current.gain.value = 1;
+      }
+      return;
+    }
+
+    try {
+      if (!audioCtxRef.current && typeof window !== "undefined") {
+        const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        if (AudioCtx) {
+          const ctx = new AudioCtx();
+          const source = ctx.createMediaElementSource(audio);
+          const compressor = ctx.createDynamicsCompressor();
+          compressor.threshold.value = -24;
+          compressor.knee.value = 20;
+          compressor.ratio.value = 4;
+          compressor.attack.value = 0.005;
+          compressor.release.value = 0.15;
+
+          const gain = ctx.createGain();
+          const analyser = ctx.createAnalyser();
+          analyser.fftSize = 512;
+
+          source.connect(compressor);
+          compressor.connect(gain);
+          gain.connect(analyser);
+          analyser.connect(ctx.destination);
+
+          audioCtxRef.current = ctx;
+          sourceNodeRef.current = source;
+          compressorRef.current = compressor;
+          boostGainRef.current = gain;
+          analyserRef.current = analyser;
+        }
+      }
+
+      if (audioCtxRef.current?.state === "suspended" && isPlaying) {
+        void audioCtxRef.current.resume();
+      }
+      if (boostGainRef.current) {
+        boostGainRef.current.gain.value = voiceBoost ? 1.45 : 1.0;
+      }
+      if (compressorRef.current) {
+        compressorRef.current.ratio.value = voiceBoost ? 5 : 1;
+      }
+    } catch {
+      // ignore Web Audio initialization issues
+    }
+
+    if (!silenceTrim || !isPlaying || !analyserRef.current) {
+      if (audio.playbackRate !== playbackRate) {
+        audio.playbackRate = playbackRate;
+      }
+      return;
+    }
+
+    const dataArr = new Uint8Array(analyserRef.current.fftSize);
+    let silentSince: number | null = null;
+    const timer = setInterval(() => {
+      const analyser = analyserRef.current;
+      const el = audioRef.current;
+      if (!analyser || !el || el.paused) return;
+
+      analyser.getByteTimeDomainData(dataArr);
+      let sumSq = 0;
+      for (let i = 0; i < dataArr.length; i++) {
+        const norm = (dataArr[i] - 128) / 128;
+        sumSq += norm * norm;
+      }
+      const rms = Math.sqrt(sumSq / dataArr.length);
+
+      if (rms < 0.012) {
+        if (!silentSince) silentSince = Date.now();
+        else if (Date.now() - silentSince > 350) {
+          const targetBoosted = Math.min(3.0, Number((playbackRate * 1.75).toFixed(2)));
+          if (el.playbackRate !== targetBoosted) el.playbackRate = targetBoosted;
+        }
+      } else {
+        silentSince = null;
+        if (el.playbackRate !== playbackRate) el.playbackRate = playbackRate;
+      }
+    }, 120);
+
+    return () => {
+      clearInterval(timer);
+      if (audioRef.current && audioRef.current.playbackRate !== playbackRate) {
+        audioRef.current.playbackRate = playbackRate;
+      }
+    };
+  }, [voiceBoost, silenceTrim, isPlaying, playbackRate]);
 
   // Save active book & playback position to localStorage for persistence across reloads
   useEffect(() => {
@@ -138,24 +266,31 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       setCurrentTime(initialSec);
       pendingSeekRef.current = initialSec;
 
+      const isLocal = book.id.startsWith("local-");
       const audio = audioRef.current;
       if (audio) {
-        const query = book.abookId
-          ? `?abookId=${encodeURIComponent(book.abookId)}`
-          : "";
-        audio.src = `/api/stream/${encodeURIComponent(book.id)}${query}`;
+        if (isLocal) {
+          audio.src = `/api/local-books/${encodeURIComponent(book.id)}/stream`;
+        } else {
+          const query = book.abookId
+            ? `?abookId=${encodeURIComponent(book.abookId)}`
+            : "";
+          audio.src = `/api/stream/${encodeURIComponent(book.id)}${query}`;
+        }
       }
 
-      // Pre-fetch chapters & bookmarks so chapters list is ready
-      fetch(`/api/books/${encodeURIComponent(book.id)}`)
-        .then((r) => (r.ok ? r.json() : null))
-        .then((detail) => {
-          if (!detail) return;
-          if (Array.isArray(detail.chapters)) setChapters(detail.chapters);
+      if (!isLocal) {
+        // Pre-fetch chapters & bookmarks so chapters list is ready
+        fetch(`/api/books/${encodeURIComponent(book.id)}`)
+          .then((r) => (r.ok ? r.json() : null))
+          .then((detail) => {
+            if (!detail) return;
+            if (Array.isArray(detail.chapters)) setChapters(detail.chapters);
           if (Array.isArray(detail.bookmarks)) setBookmarks(detail.bookmarks);
           if (detail.durationMs > 0) setDuration(detail.durationMs / 1000);
         })
         .catch(() => {});
+      }
     } catch {
       // ignore
     }
@@ -375,34 +510,41 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
           ? startSeconds
           : (book.positionMs ?? 0) / 1000;
 
-      try {
-        const detailRes = await fetch(`/api/books/${encodeURIComponent(book.id)}`);
-        if (detailRes.ok) {
-          const detail = await detailRes.json();
-          if (Array.isArray(detail.chapters)) setChapters(detail.chapters);
-          if (Array.isArray(detail.bookmarks)) setBookmarks(detail.bookmarks);
-          if (
-            typeof startSeconds !== "number" &&
-            typeof detail.positionMs === "number" &&
-            detail.positionMs > 0
-          ) {
-            initialSec = detail.positionMs / 1000;
+      const isLocal = book.id.startsWith("local-");
+      if (!isLocal) {
+        try {
+          const detailRes = await fetch(`/api/books/${encodeURIComponent(book.id)}`);
+          if (detailRes.ok) {
+            const detail = await detailRes.json();
+            if (Array.isArray(detail.chapters)) setChapters(detail.chapters);
+            if (Array.isArray(detail.bookmarks)) setBookmarks(detail.bookmarks);
+            if (
+              typeof startSeconds !== "number" &&
+              typeof detail.positionMs === "number" &&
+              detail.positionMs > 0
+            ) {
+              initialSec = detail.positionMs / 1000;
+            }
+            if (detail.durationMs > 0) {
+              setDuration(detail.durationMs / 1000);
+            }
           }
-          if (detail.durationMs > 0) {
-            setDuration(detail.durationMs / 1000);
-          }
+        } catch {
+          // continue with stream
         }
-      } catch {
-        // continue with stream
       }
 
       pendingSeekRef.current = initialSec;
       setCurrentTime(initialSec);
 
-      const query = book.abookId
-        ? `?abookId=${encodeURIComponent(book.abookId)}`
-        : "";
-      audio.src = `/api/stream/${encodeURIComponent(book.id)}${query}`;
+      if (isLocal) {
+        audio.src = `/api/local-books/${encodeURIComponent(book.id)}/stream`;
+      } else {
+        const query = book.abookId
+          ? `?abookId=${encodeURIComponent(book.abookId)}`
+          : "";
+        audio.src = `/api/stream/${encodeURIComponent(book.id)}${query}`;
+      }
       audio.playbackRate = playbackRate;
       audio.volume = isMuted ? 0 : volume;
 
@@ -649,6 +791,8 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         playbackRate,
         volume,
         isMuted,
+        voiceBoost,
+        silenceTrim,
         chapters,
         activeChapter,
         bookmarks,
@@ -661,6 +805,8 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         setPlaybackRate,
         setVolume,
         toggleMute,
+        setVoiceBoost,
+        setSilenceTrim,
         setSleepMinutes,
         setSleepEndOfChapter,
         jumpToChapter,

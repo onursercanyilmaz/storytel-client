@@ -13,6 +13,7 @@ import {
   Download,
   Gauge,
   Headphones,
+  Highlighter,
   Link2,
   Link2Off,
   ListMusic,
@@ -30,7 +31,7 @@ import {
   Volume2,
   X,
 } from "lucide-react";
-import type { BookshelfBook } from "@/lib/storytel/types";
+import type { BookHighlight, BookshelfBook, HighlightColor } from "@/lib/storytel/types";
 import type { ParsedEbook } from "@/lib/epub-parser";
 import { toPlayingBook, usePlayer } from "./PlayerContext";
 import { usePreferences } from "./PreferencesContext";
@@ -142,11 +143,37 @@ export default function ReadAndListenView({
   const [autoSync, setAutoSync] = useState(true);
 
   // Right pane tabs & vocabulary slide-over
-  const [sideTab, setSideTab] = useState<"chapters" | "bookmarks" | "vocab">("chapters");
+  const [sideTab, setSideTab] = useState<"chapters" | "bookmarks" | "vocab" | "highlights">("chapters");
   const [bmNote, setBmNote] = useState("");
   const [savingBm, setSavingBm] = useState(false);
   const [showVocabPanel, setShowVocabPanel] = useState(false);
   const [bookVocabCount, setBookVocabCount] = useState<number>(0);
+  const [highlights, setHighlights] = useState<BookHighlight[]>([]);
+  const [highlightDraft, setHighlightDraft] = useState<{
+    text: string;
+    note: string;
+    color: HighlightColor;
+    saving: boolean;
+  } | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    const loadHighlights = async () => {
+      try {
+        const res = await fetch(`/api/highlights?bookId=${encodeURIComponent(book.id)}`);
+        if (res.ok && mounted) {
+          const data = await res.json();
+          setHighlights(data.highlights || []);
+        }
+      } catch {}
+    };
+    void loadHighlights();
+    window.addEventListener("profile-switched", loadHighlights);
+    return () => {
+      mounted = false;
+      window.removeEventListener("profile-switched", loadHighlights);
+    };
+  }, [book.id]);
 
   useEffect(() => {
     let isMounted = true;
@@ -260,13 +287,74 @@ export default function ReadAndListenView({
     setTimeout(() => {
       const sel = window.getSelection();
       const selected = sel?.toString().trim() || "";
-      if (!selected || selected.length < 2 || selected.length > 60) return;
-      if (selected.split(/\s+/).length > 5) return;
+      if (!selected || selected.length < 2) return;
 
-      const anchorText = sel?.anchorNode?.textContent || "";
-      const context = anchorText.trim().slice(0, 220);
-      void openVocabLookup(selected, context);
+      const wordCount = selected.split(/\s+/).length;
+      if (wordCount <= 4 && selected.length <= 50) {
+        const anchorText = sel?.anchorNode?.textContent || "";
+        const context = anchorText.trim().slice(0, 220);
+        void openVocabLookup(selected, context);
+      } else if (selected.length <= 1800) {
+        setHighlightDraft({
+          text: selected,
+          note: "",
+          color: "yellow",
+          saving: false,
+        });
+      }
     }, 15);
+  };
+
+  const handleSaveHighlightDraft = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!highlightDraft || !highlightDraft.text.trim()) return;
+    setHighlightDraft((prev) => (prev ? { ...prev, saving: true } : null));
+    try {
+      const res = await fetch("/api/highlights", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          bookId: book.id,
+          bookTitle: book.title,
+          chapterIndex: chapterIdx,
+          chapterTitle: ebook?.chapters[chapterIdx]?.title || undefined,
+          text: highlightDraft.text,
+          note: highlightDraft.note.trim() || undefined,
+          color: highlightDraft.color,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.entry) setHighlights((prev) => [data.entry, ...prev]);
+        setHighlightDraft(null);
+      }
+    } catch {
+      setHighlightDraft((prev) => (prev ? { ...prev, saving: false } : null));
+    }
+  };
+
+  const handleDeleteHighlight = async (id: string) => {
+    setHighlights((prev) => prev.filter((h) => h.id !== id));
+    await fetch(`/api/highlights?id=${encodeURIComponent(id)}`, { method: "DELETE" }).catch(() => {});
+  };
+
+  const handleExportHighlightsMd = () => {
+    const lines = [
+      `# ${book.title} — Alıntılar & Notlar`,
+      "",
+      ...highlights.map((h) => {
+        const ch = h.chapterTitle ? ` (${h.chapterTitle})` : "";
+        const noteLine = h.note ? `\n> **Not:** ${h.note}` : "";
+        return `### ${h.color.toUpperCase()}${ch}\n> "${h.text}"${noteLine}\n`;
+      }),
+    ];
+    const blob = new Blob([lines.join("\n")], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${book.title.replace(/[^a-zA-Z0-9ğüşöçıİĞÜŞÖÇ _-]/g, "_")}-notlar.md`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const handleSaveVocabDraft = async (e: React.FormEvent) => {
@@ -1074,7 +1162,7 @@ export default function ReadAndListenView({
             <button
               type="button"
               onClick={() => setSideTab("vocab")}
-              className={`pb-2.5 border-b-2 flex items-center gap-1.5 cursor-pointer ${
+              className={`pb-2.5 border-b-2 flex items-center gap-1.5 cursor-pointer shrink-0 ${
                 sideTab === "vocab"
                   ? "border-[#FF5500] text-[#FF5500]"
                   : "border-transparent st-muted"
@@ -1082,6 +1170,18 @@ export default function ReadAndListenView({
             >
               <BookMarked className="w-3.5 h-3.5" />
               {lang === "tr" ? "Kelimeler" : "Words"} ({bookVocabCount})
+            </button>
+            <button
+              type="button"
+              onClick={() => setSideTab("highlights")}
+              className={`pb-2.5 border-b-2 flex items-center gap-1.5 cursor-pointer shrink-0 ${
+                sideTab === "highlights"
+                  ? "border-[#FF5500] text-[#FF5500]"
+                  : "border-transparent st-muted"
+              }`}
+            >
+              <Highlighter className="w-3.5 h-3.5" />
+              {lang === "tr" ? "Alıntılar" : "Notes"} ({highlights.length})
             </button>
           </div>
 
@@ -1176,6 +1276,75 @@ export default function ReadAndListenView({
                   bookTitle={book.title}
                   isDrawer
                 />
+              </div>
+            )}
+
+            {sideTab === "highlights" && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[11px] font-bold st-muted uppercase tracking-wider">
+                    {highlights.length} {lang === "tr" ? "Alıntı / Not" : "Highlights"}
+                  </span>
+                  {highlights.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleExportHighlightsMd}
+                      className="px-2.5 py-1 rounded-full st-bg border st-border hover:border-[#FF5500] text-[11px] font-bold text-[#FF5500] flex items-center gap-1 cursor-pointer"
+                    >
+                      <Download className="w-3 h-3" />
+                      Markdown (.md)
+                    </button>
+                  )}
+                </div>
+                {highlights.length === 0 ? (
+                  <p className="text-xs st-muted text-center py-8">
+                    {lang === "tr"
+                      ? "E-kitapta bir cümle veya paragraf seçerek vurgulayabilir ve not ekleyebilirsiniz."
+                      : "Select any sentence or passage in the e-book to highlight and add margin notes."}
+                  </p>
+                ) : (
+                  highlights.map((h) => {
+                    const colorBorder =
+                      h.color === "green"
+                        ? "border-l-emerald-500"
+                        : h.color === "pink"
+                          ? "border-l-pink-500"
+                          : h.color === "blue"
+                            ? "border-l-sky-500"
+                            : "border-l-amber-400";
+                    return (
+                      <div
+                        key={h.id}
+                        className={`p-3 rounded-xl st-bg border st-border border-l-4 ${colorBorder} space-y-1.5`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setChapterIdx(h.chapterIndex)}
+                            className="text-left text-xs st-ink leading-relaxed hover:text-[#FF5500] cursor-pointer"
+                          >
+                            &ldquo;{h.text}&rdquo;
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteHighlight(h.id)}
+                            className="p-1 st-muted hover:text-red-500 cursor-pointer shrink-0"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                        {h.note && (
+                          <div className="text-[11px] text-[#FF5500] font-medium">
+                            📝 {h.note}
+                          </div>
+                        )}
+                        {h.chapterTitle && (
+                          <div className="text-[10px] st-muted">{h.chapterTitle}</div>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
               </div>
             )}
           </div>
@@ -1307,6 +1476,65 @@ export default function ReadAndListenView({
               ) : (
                 "Save Word"
               )}
+            </button>
+          </form>
+        </div>
+      )}
+
+      {/* Floating Highlight & Margin Note Popup */}
+      {highlightDraft && (
+        <div className="fixed bottom-5 left-5 z-50 w-96 max-w-[calc(100vw-2.5rem)] rounded-2xl st-surface border border-[#FF5500]/50 shadow-2xl p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-[#FF5500] flex items-center gap-1.5">
+              <Highlighter className="w-3.5 h-3.5" />
+              {lang === "tr" ? "Vurgula & Not Al" : "Highlight & Note"}
+            </span>
+            <button
+              type="button"
+              onClick={() => setHighlightDraft(null)}
+              className="st-muted hover:st-ink cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          <p className="text-xs st-ink italic line-clamp-3 border-l-2 border-[#FF5500] pl-2.5">
+            &ldquo;{highlightDraft.text}&rdquo;
+          </p>
+          <form onSubmit={handleSaveHighlightDraft} className="space-y-2.5">
+            <div className="flex items-center gap-2">
+              {(
+                [
+                  { id: "yellow", cls: "bg-amber-400" },
+                  { id: "green", cls: "bg-emerald-500" },
+                  { id: "pink", cls: "bg-pink-500" },
+                  { id: "blue", cls: "bg-sky-500" },
+                ] as const
+              ).map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => setHighlightDraft({ ...highlightDraft, color: c.id })}
+                  className={`w-6 h-6 rounded-full ${c.cls} cursor-pointer transition ${
+                    highlightDraft.color === c.id ? "ring-2 ring-white scale-110" : "opacity-65 hover:opacity-100"
+                  }`}
+                />
+              ))}
+            </div>
+            <input
+              type="text"
+              value={highlightDraft.note}
+              onChange={(e) => setHighlightDraft({ ...highlightDraft, note: e.target.value })}
+              placeholder={lang === "tr" ? "Kenar notu ekle (opsiyonel)..." : "Add margin note (optional)..."}
+              className="w-full px-3 py-2 rounded-xl st-bg border st-border text-xs st-ink focus:outline-none focus:border-[#FF5500]"
+            />
+            <button
+              type="submit"
+              disabled={highlightDraft.saving}
+              className="w-full py-2 rounded-xl st-accent-bg text-white text-xs font-bold cursor-pointer disabled:opacity-50"
+            >
+              {highlightDraft.saving
+                ? lang === "tr" ? "Kaydediliyor..." : "Saving..."
+                : lang === "tr" ? "Alıntıyı Kaydet" : "Save Highlight"}
             </button>
           </form>
         </div>

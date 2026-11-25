@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireStorytelClient } from "@/lib/api-helpers";
-import { deleteVocabEntry, updateVocabEntry } from "@/lib/local-store";
+import {
+  deleteVocabEntry,
+  getVocabulary,
+  updateVocabEntry,
+} from "@/lib/local-store";
+import { computeNextSrs, type SrsQuality } from "@/lib/srs";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +15,7 @@ const patchSchema = z.object({
   meaning: z.string().max(500).optional(),
   context: z.string().max(600).optional(),
   mastered: z.boolean().optional(),
+  reviewQuality: z.union([z.literal(0), z.literal(2), z.literal(3), z.literal(5)]).optional(),
 });
 
 export async function PATCH(
@@ -25,7 +31,19 @@ export async function PATCH(
     return NextResponse.json({ error: "Geçersiz veri." }, { status: 400 });
   }
 
-  const entry = updateVocabEntry(id, parsed.data);
+  const { reviewQuality, ...rest } = parsed.data;
+  let patch: Parameters<typeof updateVocabEntry>[1] = rest;
+
+  if (reviewQuality !== undefined) {
+    const existing = getVocabulary().find((w) => w.id === id);
+    if (!existing) {
+      return NextResponse.json({ error: "Kelime bulunamadı." }, { status: 404 });
+    }
+    const srs = computeNextSrs(existing, reviewQuality as SrsQuality);
+    patch = { ...rest, ...srs };
+  }
+
+  const entry = updateVocabEntry(id, patch);
   if (!entry) {
     return NextResponse.json({ error: "Kelime bulunamadı." }, { status: 404 });
   }

@@ -11,6 +11,9 @@ export interface UserProfile {
   color: string; // Hex color accent
   isMain: boolean; // Exactly 1 main profile (owner)
   isKid: boolean; // Kids mode with safe content filtering
+  hasPin?: boolean; // Public flag: true when parental/profile PIN is configured
+  pinHash?: string; // Server-only SHA-256 hash (stripped before sending to client)
+  dailyLimitMinutes?: number; // Optional daily listening limit for Kid profiles
   createdAt: string;
   preferences?: ProfilePreferences;
 }
