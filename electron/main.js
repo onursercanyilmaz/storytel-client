@@ -1,7 +1,7 @@
 const { app, BrowserWindow, shell } = require("electron");
 const path = require("path");
 const http = require("http");
-const { fork } = require("child_process");
+const fs = require("fs");
 
 let mainWindow = null;
 let serverProcess = null;
@@ -35,9 +35,10 @@ function waitForServer(url, timeoutMs = 25000) {
 
 function findServerScript() {
   const candidates = [
-    path.join(__dirname, "..", ".next", "standalone", "server.js"),
+    path.join(process.resourcesPath || "", "app.asar.unpacked", ".next", "standalone", "server.js"),
     path.join(process.resourcesPath || "", "app", ".next", "standalone", "server.js"),
     path.join(process.resourcesPath || "", ".next", "standalone", "server.js"),
+    path.join(__dirname, "..", ".next", "standalone", "server.js"),
     path.join(app.getAppPath(), ".next", "standalone", "server.js"),
   ];
 
@@ -51,21 +52,18 @@ function findServerScript() {
 
 async function startNextServer() {
   const serverPath = findServerScript();
-  console.log("[Electron] Starting Next.js standalone server:", serverPath);
+  const userDataDir = path.join(app.getPath("userData"), "storytel-data");
+  console.log("[Electron] Starting Next.js standalone server in-process:", serverPath);
+  console.log("[Electron] Using STORYTEL_DATA_DIR:", userDataDir);
 
-  serverProcess = fork(serverPath, [], {
-    env: {
-      ...process.env,
-      PORT: String(PORT),
-      HOSTNAME: "127.0.0.1",
-      NODE_ENV: "production",
-    },
-    stdio: "ignore",
-  });
+  process.env.PORT = String(PORT);
+  process.env.HOSTNAME = "127.0.0.1";
+  process.env.NODE_ENV = "production";
+  if (!process.env.STORYTEL_DATA_DIR) {
+    process.env.STORYTEL_DATA_DIR = userDataDir;
+  }
 
-  serverProcess.on("error", (err) => {
-    console.error("[Electron] Next.js server process error:", err);
-  });
+  require(serverPath);
 
   await waitForServer(`${SERVER_URL}/api/auth/me`);
   console.log("[Electron] Server ready on", SERVER_URL);
