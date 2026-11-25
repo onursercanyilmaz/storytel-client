@@ -3,6 +3,12 @@
   "version": "1.0.0",
   "private": true,
   "description": "Unofficial, security-first local web & PWA desktop client for Storytel audiobooks with Google SSO, offline MP3 downloads, custom collections, and Storytel-inspired UI.",
+  "author": "Onur Sercan Yılmaz <onursercanyilmaz@users.noreply.github.com>",
+  "homepage": "https://onursercanyilmaz.github.io/storytel-client/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/onursercanyilmaz/storytel-client.git"
+  },
   "license": "MIT",
   "keywords": [
     "storytel",
