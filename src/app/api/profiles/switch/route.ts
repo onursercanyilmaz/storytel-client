@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { requireStorytelClient } from "@/lib/api-helpers";
 import { getProfilesStore, switchActiveProfile } from "@/lib/profiles";
 
 const schema = z.object({
@@ -7,6 +8,9 @@ const schema = z.object({
 });
 
 export async function POST(request: Request) {
+  const auth = await requireStorytelClient();
+  if (auth.error) return auth.error;
+
   try {
     const json = await request.json();
     const parsed = schema.safeParse(json);

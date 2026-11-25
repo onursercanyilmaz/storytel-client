@@ -102,9 +102,11 @@ export default function PlayerBar({ onOpenBookDetail }: PlayerBarProps) {
     };
 
     window.addEventListener("vocab-updated", handleUpdate);
+    window.addEventListener("profile-switched", fetchCount);
     return () => {
       isMounted = false;
       window.removeEventListener("vocab-updated", handleUpdate);
+      window.removeEventListener("profile-switched", fetchCount);
     };
   }, [currentBook?.id]);
 

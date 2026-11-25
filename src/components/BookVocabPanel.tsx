@@ -72,8 +72,13 @@ export default function BookVocabPanel({
         fetchBookWords();
       }
     };
+    const handleProfileSwitch = () => fetchBookWords();
     window.addEventListener("vocab-updated", handleRemoteUpdate);
-    return () => window.removeEventListener("vocab-updated", handleRemoteUpdate);
+    window.addEventListener("profile-switched", handleProfileSwitch);
+    return () => {
+      window.removeEventListener("vocab-updated", handleRemoteUpdate);
+      window.removeEventListener("profile-switched", handleProfileSwitch);
+    };
   }, [fetchBookWords, bookId]);
 
   const speakWord = (word: string) => {

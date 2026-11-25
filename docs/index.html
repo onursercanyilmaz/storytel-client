@@ -123,7 +123,7 @@
             <p class="dl-compat">Windows 10 / 11 (64-bit)</p>
             <div class="dl-actions">
               <a
-                href="https://github.com/onursercanyilmaz/storytel-client/releases/latest"
+                href="https://github.com/onursercanyilmaz/storytel-client/releases/latest/download/Storytel-Client-Setup-1.0.0.exe"
                 id="btn-dl-win"
                 class="btn btn-primary btn-block btn-dl"
               >
@@ -135,7 +135,9 @@
                 <span data-i18n="dl.btnWin">Download for Windows</span>
                 <span class="btn-badge">.exe</span>
               </a>
-              <span class="dl-alt-text">✓ Setup installer &amp; Portable .exe</span>
+              <span class="dl-alt-text">
+                ✓ Setup installer · <a id="btn-dl-win-portable" href="https://github.com/onursercanyilmaz/storytel-client/releases/latest/download/Storytel-Client-Portable-1.0.0.exe" class="link-accent">Portable .exe</a>
+              </span>
             </div>
           </article>
 
@@ -155,7 +157,7 @@
             <p class="dl-compat">macOS 12 Monterey or later</p>
             <div class="dl-actions">
               <a
-                href="https://github.com/onursercanyilmaz/storytel-client/releases/latest"
+                href="https://github.com/onursercanyilmaz/storytel-client/releases/latest/download/Storytel-Client-1.0.0-arm64.dmg"
                 id="btn-dl-mac"
                 class="btn btn-primary btn-block btn-dl"
               >
@@ -167,7 +169,9 @@
                 <span data-i18n="dl.btnMac">Download for macOS</span>
                 <span class="btn-badge">.dmg / .zip</span>
               </a>
-              <span class="dl-alt-text">✓ Apple Silicon &amp; Intel</span>
+              <span class="dl-alt-text">
+                ✓ Apple Silicon (.dmg) · <a id="btn-dl-mac-zip" href="https://github.com/onursercanyilmaz/storytel-client/releases/latest/download/Storytel-Client-1.0.0-arm64.zip" class="link-accent">.zip</a>
+              </span>
             </div>
           </article>
 
@@ -187,7 +191,7 @@
             <p class="dl-compat">Ubuntu, Debian, Fedora, Arch</p>
             <div class="dl-actions">
               <a
-                href="https://github.com/onursercanyilmaz/storytel-client/releases/latest"
+                href="https://github.com/onursercanyilmaz/storytel-client/releases/latest/download/storytel-client_1.0.0_amd64.deb"
                 id="btn-dl-linux"
                 class="btn btn-primary btn-block btn-dl"
               >
@@ -199,7 +203,9 @@
                 <span data-i18n="dl.btnLinux">Download for Linux</span>
                 <span class="btn-badge">.deb / .AppImage</span>
               </a>
-              <span class="dl-alt-text">✓ Debian, Ubuntu &amp; Universal AppImage</span>
+              <span class="dl-alt-text">
+                ✓ Debian / Ubuntu (.deb) · <a id="btn-dl-linux-appimage" href="https://github.com/onursercanyilmaz/storytel-client/releases/latest/download/storytel-client_1.0.0_x86_64.AppImage" class="link-accent">.AppImage</a>
+              </span>
             </div>
           </article>
         </div>
@@ -577,12 +583,19 @@ npm run build
         .then((r) => (r.ok ? r.json() : null))
         .then((rel) => {
           if (!rel || !Array.isArray(rel.assets)) return;
-          const win = rel.assets.find((a) => a.name.includes("win") || a.name.endsWith(".exe") || a.name.endsWith(".zip"));
-          const mac = rel.assets.find((a) => a.name.includes("mac") || a.name.endsWith(".dmg") || a.name.endsWith(".tar.gz"));
-          const linux = rel.assets.find((a) => a.name.includes("linux") || a.name.endsWith(".tar.gz"));
-          if (win && document.getElementById("btn-dl-win")) document.getElementById("btn-dl-win").href = win.browser_download_url;
-          if (mac && document.getElementById("btn-dl-mac")) document.getElementById("btn-dl-mac").href = mac.browser_download_url;
-          if (linux && document.getElementById("btn-dl-linux")) document.getElementById("btn-dl-linux").href = linux.browser_download_url;
+          const winSetup = rel.assets.find((a) => /setup.*\.exe$/i.test(a.name)) || rel.assets.find((a) => a.name.endsWith(".exe"));
+          const winPortable = rel.assets.find((a) => /portable.*\.exe$/i.test(a.name));
+          const macDmg = rel.assets.find((a) => a.name.endsWith(".dmg"));
+          const macZip = rel.assets.find((a) => a.name.endsWith(".zip") && /mac|arm64|x64/i.test(a.name));
+          const linuxDeb = rel.assets.find((a) => a.name.endsWith(".deb"));
+          const linuxAppImage = rel.assets.find((a) => a.name.endsWith(".AppImage"));
+
+          if (winSetup && document.getElementById("btn-dl-win")) document.getElementById("btn-dl-win").href = winSetup.browser_download_url;
+          if (winPortable && document.getElementById("btn-dl-win-portable")) document.getElementById("btn-dl-win-portable").href = winPortable.browser_download_url;
+          if (macDmg && document.getElementById("btn-dl-mac")) document.getElementById("btn-dl-mac").href = macDmg.browser_download_url;
+          if (macZip && document.getElementById("btn-dl-mac-zip")) document.getElementById("btn-dl-mac-zip").href = macZip.browser_download_url;
+          if (linuxDeb && document.getElementById("btn-dl-linux")) document.getElementById("btn-dl-linux").href = linuxDeb.browser_download_url;
+          if (linuxAppImage && document.getElementById("btn-dl-linux-appimage")) document.getElementById("btn-dl-linux-appimage").href = linuxAppImage.browser_download_url;
         })
         .catch(() => {});
     </script>

@@ -194,7 +194,7 @@ export default function SearchView({
       return [...list].sort((a, b) => b.durationMs - a.durationMs);
     }
     return list;
-  }, [results, langFilter, formatFilter, durationFilter, sortBy]);
+  }, [results, langFilter, formatFilter, durationFilter, sortBy, activeProfile?.isKid]);
 
   const selectedBook = useMemo(
     () => filtered.find((b) => b.id === selectedId) ?? filtered[0] ?? null,

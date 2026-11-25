@@ -210,10 +210,17 @@ export function StatsView({
   const [stats, setStats] = useState<ListeningStats | null>(null);
 
   useEffect(() => {
-    fetch("/api/stats")
-      .then((r) => r.json())
-      .then(setStats)
-      .catch(() => {});
+    const loadStats = () => {
+      fetch("/api/stats")
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data) => {
+          if (data) setStats(data);
+        })
+        .catch(() => {});
+    };
+    loadStats();
+    window.addEventListener("profile-switched", loadStats);
+    return () => window.removeEventListener("profile-switched", loadStats);
   }, []);
 
   if (!stats) {

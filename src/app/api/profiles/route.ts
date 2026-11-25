@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { requireStorytelClient } from "@/lib/api-helpers";
 import {
   createProfile,
   deleteProfile,
@@ -32,6 +33,9 @@ const updateSchema = z.object({
 });
 
 export async function GET() {
+  const auth = await requireStorytelClient();
+  if (auth.error) return auth.error;
+
   const store = getProfilesStore();
   const activeProfile = getActiveProfile();
 
@@ -44,6 +48,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const auth = await requireStorytelClient();
+  if (auth.error) return auth.error;
+
   try {
     const json = await request.json();
     const parsed = createSchema.safeParse(json);
@@ -72,6 +79,9 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
+  const auth = await requireStorytelClient();
+  if (auth.error) return auth.error;
+
   try {
     const json = await request.json();
     const parsed = updateSchema.safeParse(json);
@@ -100,6 +110,9 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  const auth = await requireStorytelClient();
+  if (auth.error) return auth.error;
+
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");

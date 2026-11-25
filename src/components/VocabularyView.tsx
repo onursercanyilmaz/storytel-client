@@ -50,6 +50,13 @@ export default function VocabularyView() {
 
   useEffect(() => {
     void load();
+    const onReload = () => void load();
+    window.addEventListener("profile-switched", onReload);
+    window.addEventListener("vocab-updated", onReload);
+    return () => {
+      window.removeEventListener("profile-switched", onReload);
+      window.removeEventListener("vocab-updated", onReload);
+    };
   }, []);
 
   const speak = (text: string) => {
