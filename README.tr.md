@@ -12,10 +12,11 @@
 *Bölünmüş Ekran "Oku & Dinle" stüdyosu, çok dilli kelime defteri, kişiselleştirilmiş kitap önerileri ve çevrimdışı indirme özellikleri ile masaüstü Storytel deneyimi.*
 
 <p align="center">
+  <a href="https://www.npmjs.com/package/storytel-client"><img src="https://img.shields.io/npm/v/storytel-client?style=flat-square&color=ff5500&logo=npm" alt="npm sürümü" height="22" /></a>
   <img src="https://img.shields.io/badge/Next.js-15-black?style=flat-square&logo=next.js" alt="Next.js 15" height="22" />
   <img src="https://img.shields.io/badge/React-19-149eca?style=flat-square&logo=react" alt="React 19" height="22" />
   <img src="https://img.shields.io/badge/TypeScript-5-3178c6?style=flat-square&logo=typescript" alt="TypeScript 5" height="22" />
-  <img src="https://img.shields.io/badge/License-MIT-ff5500?style=flat-square" alt="MIT License" height="22" />
+  <img src="https://img.shields.io/badge/License-MIT-ff5500?style=flat-square" alt="MIT Lisansı" height="22" />
 </p>
 
 </div>
@@ -24,6 +25,23 @@
 > **Aktif Storytel Aboneliği Gereklidir**  
 > Bu uygulama resmi Storytel hesabınız ve API'leri üzerinden çalışır. Sesli kitapları dinlemek, e-kitapları okumak veya indirmek için **aktif bir Storytel aboneliğine sahip olmanız gerekir**.  
 > *(Uygulama bağımsız, açık kaynaklı bir masaüstü arayüzüdür; abonelik gereksinimlerini atlamaz veya korsan içerik barındırmaz).*
+
+---
+
+## ⚡ npm ile Tek Komutla Başlatın
+
+Kaynak kodu klonlamadan doğrudan terminalinizden çalıştırabilirsiniz (Node.js 20+ gerektirir):
+
+```bash
+# npx ile anında çalıştırın
+npx storytel-client
+
+# Veya global olarak kurun
+npm install -g storytel-client
+storytel-client --port 3000
+```
+
+Şifreli oturumunuz, profilleriniz, kelime defteriniz ve çevrimdışı MP3'leriniz güvenle `~/.storytel-client` dizininde saklanır. Masaüstü kurulum paketleri (`.exe`, `.deb`, `.AppImage`, `.dmg`) için [Releases](https://github.com/onursercanyilmaz/storytel-client/releases) sayfasını ziyaret edebilirsiniz.
 
 ---
 

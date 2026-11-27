@@ -12,6 +12,7 @@
 *Featuring a Split-Screen "Read & Listen" studio, multilingual vocabulary builder, library-based smart recommendations, and offline downloads.*
 
 <p align="center">
+  <a href="https://www.npmjs.com/package/storytel-client"><img src="https://img.shields.io/npm/v/storytel-client?style=flat-square&color=ff5500&logo=npm" alt="npm version" height="22" /></a>
   <img src="https://img.shields.io/badge/Next.js-15-black?style=flat-square&logo=next.js" alt="Next.js 15" height="22" />
   <img src="https://img.shields.io/badge/React-19-149eca?style=flat-square&logo=react" alt="React 19" height="22" />
   <img src="https://img.shields.io/badge/TypeScript-5-3178c6?style=flat-square&logo=typescript" alt="TypeScript 5" height="22" />
@@ -24,6 +25,23 @@
 > **Active Storytel Subscription Required**  
 > This application communicates directly with the official Storytel APIs using your own Storytel account. An **active Storytel subscription is strictly required** to stream audio, read e-books, or download media.  
 > *(This is an independent, open-source desktop interface; it does not bypass subscription paywalls or host copyrighted media).*
+
+---
+
+## ⚡ Instant Launch via npm
+
+Run **`storytel-client`** directly from your terminal with zero manual cloning (requires Node.js 20+):
+
+```bash
+# Run immediately with npx
+npx storytel-client
+
+# Or install globally
+npm install -g storytel-client
+storytel-client --port 3000
+```
+
+Your encrypted session, profiles, vocabulary, highlights, and offline MP3s are stored safely in `~/.storytel-client`. Desktop installers (`.exe`, `.deb`, `.AppImage`, `.dmg`) are also available on the [Releases](https://github.com/onursercanyilmaz/storytel-client/releases) page.
 
 ---
 
