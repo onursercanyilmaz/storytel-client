@@ -210,6 +210,52 @@
           </article>
         </div>
 
+        <!-- npm / CLI Banner -->
+        <div class="dl-npm-banner">
+          <div class="dl-npm-top">
+            <div class="dl-npm-title-row">
+              <span class="badge-npm">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M0 0v24h24V0H0zm19.2 19.2H12v-9.6H7.2v9.6H4.8V4.8h14.4v14.4z"/>
+                </svg>
+                <span data-i18n="dl.npmBadge">npm Package</span>
+              </span>
+              <h3 class="dl-npm-title" data-i18n="dl.npmTitle">Instant Launch via npm (No Clone Needed)</h3>
+            </div>
+            <a
+              href="https://www.npmjs.com/package/storytel-client"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn btn-secondary btn-sm"
+              data-i18n="dl.npmLink"
+            >
+              View on npm ↗
+            </a>
+          </div>
+          <p class="dl-npm-desc" data-i18n="dl.npmDesc">
+            Have Node.js 20+ installed? Run storytel-client directly in one command without cloning the repo or downloading an installer.
+          </p>
+          <div class="dl-npm-cmds">
+            <div class="dl-cmd-box">
+              <div class="dl-cmd-left">
+                <span class="dl-cmd-label" data-i18n="dl.npmInstant">Run instantly (npx)</span>
+                <code>npx storytel-client</code>
+              </div>
+              <button class="dl-cmd-copy" type="button" data-copy="npx storytel-client" data-i18n="btn.copy">Copy</button>
+            </div>
+            <div class="dl-cmd-box">
+              <div class="dl-cmd-left">
+                <span class="dl-cmd-label" data-i18n="dl.npmGlobal">Install globally (npm i)</span>
+                <code>npm i -g storytel-client</code>
+              </div>
+              <button class="dl-cmd-copy" type="button" data-copy="npm i -g storytel-client" data-i18n="btn.copy">Copy</button>
+            </div>
+          </div>
+          <div class="dl-npm-flags" data-i18n="dl.npmFlags">
+            CLI options: <code>--port 3500</code> (custom port) · <code>--no-open</code> (headless) · Data stored locally in <code>~/.storytel-client</code>
+          </div>
+        </div>
+
         <!-- PWA / Web banner below cards -->
         <div class="dl-pwa-banner">
           <div class="dl-pwa-content">
@@ -379,12 +425,14 @@
             </div>
             <button id="copyBtn" class="copy-btn" type="button">Copy</button>
           </div>
-          <pre id="quickStartCode"><span class="cmd-comment"># Clone &amp; install</span>
+          <pre id="quickStartCode"><span class="cmd-comment"># Option 1: Instant launch via npm (Node.js 20+)</span>
+<span class="cmd-accent">npx storytel-client</span>
+<span class="cmd-comment"># Or install globally: npm i -g storytel-client &amp;&amp; storytel-client</span>
+
+<span class="cmd-comment"># Option 2: Clone &amp; build from source</span>
 git clone https://github.com/onursercanyilmaz/storytel-client.git
 cd storytel-client
 npm install
-
-<span class="cmd-comment"># Build &amp; launch on http://127.0.0.1:3000</span>
 npm run build
 <span class="cmd-accent">npm run start</span></pre>
         </div>
@@ -417,10 +465,20 @@ npm run build
           "dl.kicker": "Downloads & Releases",
           "dl.title": "Get storytel-client for your desktop",
           "dl.desc":
-            "Choose your operating system below to download the latest desktop installer, portable package, or install as a PWA.",
+            "Choose your operating system below to download the latest desktop installer, run instantly via npm / npx, or install as a PWA.",
           "dl.btnWin": "Download for Windows",
           "dl.btnMac": "Download for macOS",
           "dl.btnLinux": "Download for Linux",
+          "dl.npmBadge": "npm Package",
+          "dl.npmTitle": "Instant Launch via npm (No Clone Needed)",
+          "dl.npmLink": "View on npm ↗",
+          "dl.npmDesc":
+            "Have Node.js 20+ installed? Run storytel-client directly in one command without cloning the repo or downloading an installer.",
+          "dl.npmInstant": "Run instantly (npx)",
+          "dl.npmGlobal": "Install globally (npm i)",
+          "dl.npmFlags":
+            "CLI options: <code>--port 3500</code> (custom port) · <code>--no-open</code> (headless) · Data stored locally in <code>~/.storytel-client</code>",
+          "btn.copy": "Copy",
           "dl.pwaText": "Want zero install? Run locally in your browser or install as a PWA desktop app.",
           "dl.pwaBtn": "Quick Start Guide →",
           "feat.kicker": "Features",
@@ -492,10 +550,20 @@ npm run build
           "dl.kicker": "İndirmeler & Sürümler",
           "dl.title": "Masaüstün İçin storytel-client",
           "dl.desc":
-            "Aşağıdan işletim sistemini seçerek en son masaüstü paketini indir veya doğrudan PWA olarak kullan.",
+            "Aşağıdan işletim sistemini seçerek en son masaüstü paketini indir, npm / npx ile tek komutla çalıştır veya PWA olarak kullan.",
           "dl.btnWin": "Windows İçin İndir",
           "dl.btnMac": "macOS İçin İndir",
           "dl.btnLinux": "Linux İçin İndir",
+          "dl.npmBadge": "npm Paketi",
+          "dl.npmTitle": "npm ile Tek Komutla Başlatın (Klonlama Gerektirmez)",
+          "dl.npmLink": "npm'de Görüntüle ↗",
+          "dl.npmDesc":
+            "Bilgisayarınızda Node.js 20+ kuruluysa repoyu klonlamadan veya kurulum dosyası indirmeden tek komutla doğrudan başlatabilirsiniz.",
+          "dl.npmInstant": "Anında çalıştır (npx)",
+          "dl.npmGlobal": "Global kur (npm i)",
+          "dl.npmFlags":
+            "CLI seçenekleri: <code>--port 3500</code> (özel port) · <code>--no-open</code> (tarayıcı açma) · Veriler yerel <code>~/.storytel-client</code> klasöründe saklanır",
+          "btn.copy": "Kopyala",
           "dl.pwaText": "Kurulum istemiyor musun? Tarayıcında yerel olarak çalıştır veya PWA olarak yükle.",
           "dl.pwaBtn": "Hızlı Başlangıç Rehberi →",
           "feat.kicker": "Özellikler",
@@ -570,8 +638,18 @@ npm run build
         applyLang(lang === "en" ? "tr" : "en");
       });
 
+      document.querySelectorAll(".dl-cmd-copy").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const cmd = btn.getAttribute("data-copy");
+          if (!cmd) return;
+          await navigator.clipboard.writeText(cmd);
+          btn.textContent = lang === "tr" ? "Kopyalandı ✓" : "Copied ✓";
+          setTimeout(() => (btn.textContent = i18n[lang]["btn.copy"] || "Copy"), 2000);
+        });
+      });
+
       document.getElementById("copyBtn").addEventListener("click", async () => {
-        const text = `git clone https://github.com/onursercanyilmaz/storytel-client.git\ncd storytel-client\nnpm install\nnpm run build\nnpm run start`;
+        const text = `npx storytel-client\n# or: npm i -g storytel-client && storytel-client`;
         await navigator.clipboard.writeText(text);
         const btn = document.getElementById("copyBtn");
         btn.textContent = lang === "tr" ? "Kopyalandı ✓" : "Copied ✓";
