@@ -13,10 +13,19 @@
 
 <p align="center">
   <a href="https://www.npmjs.com/package/storytel-client"><img src="https://img.shields.io/npm/v/storytel-client?style=flat-square&color=ff5500&logo=npm" alt="npm version" height="22" /></a>
+  <a href="https://www.npmjs.com/package/storytel-client"><img src="https://img.shields.io/npm/dt/storytel-client?style=flat-square&color=cb3837&logo=npm" alt="npm downloads" height="22" /></a>
+  <a href="https://github.com/onursercanyilmaz/storytel-client/releases"><img src="https://img.shields.io/github/v/release/onursercanyilmaz/storytel-client?style=flat-square&color=ff5500&logo=github" alt="GitHub Release" height="22" /></a>
+  <img src="https://img.shields.io/badge/Node.js-20%2B-339933?style=flat-square&logo=node.js" alt="Node.js 20+" height="22" />
   <img src="https://img.shields.io/badge/Next.js-15-black?style=flat-square&logo=next.js" alt="Next.js 15" height="22" />
   <img src="https://img.shields.io/badge/React-19-149eca?style=flat-square&logo=react" alt="React 19" height="22" />
   <img src="https://img.shields.io/badge/TypeScript-5-3178c6?style=flat-square&logo=typescript" alt="TypeScript 5" height="22" />
   <img src="https://img.shields.io/badge/License-MIT-ff5500?style=flat-square" alt="MIT License" height="22" />
+</p>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/storytel-client">
+    <img src="https://nodei.co/npm/storytel-client.png?compact=true" alt="npm install storytel-client" />
+  </a>
 </p>
 
 </div>
@@ -28,19 +37,20 @@
 
 ---
 
-## ⚡ Instant Launch via npm
+## ⚡ Instant Launch via npm (`npx` / `npm i`)
 
 Run **`storytel-client`** directly from your terminal with zero manual cloning (requires Node.js 20+):
 
 ```bash
-# Run immediately with npx
+# Run immediately with npx (zero install)
 npx storytel-client
 
-# Or install globally
-npm install -g storytel-client
+# Or install globally with npm i
+npm i -g storytel-client
 storytel-client --port 3000
 ```
 
+**CLI Flags:** `--port <number>` (default `3000`), `--no-open` (skip auto-opening browser), `--help`.  
 Your encrypted session, profiles, vocabulary, highlights, and offline MP3s are stored safely in `~/.storytel-client`. Desktop installers (`.exe`, `.deb`, `.AppImage`, `.dmg`) are also available on the [Releases](https://github.com/onursercanyilmaz/storytel-client/releases) page.
 
 ---

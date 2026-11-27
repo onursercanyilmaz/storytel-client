@@ -13,10 +13,19 @@
 
 <p align="center">
   <a href="https://www.npmjs.com/package/storytel-client"><img src="https://img.shields.io/npm/v/storytel-client?style=flat-square&color=ff5500&logo=npm" alt="npm sürümü" height="22" /></a>
+  <a href="https://www.npmjs.com/package/storytel-client"><img src="https://img.shields.io/npm/dt/storytel-client?style=flat-square&color=cb3837&logo=npm" alt="npm indirmeleri" height="22" /></a>
+  <a href="https://github.com/onursercanyilmaz/storytel-client/releases"><img src="https://img.shields.io/github/v/release/onursercanyilmaz/storytel-client?style=flat-square&color=ff5500&logo=github" alt="GitHub Sürümü" height="22" /></a>
+  <img src="https://img.shields.io/badge/Node.js-20%2B-339933?style=flat-square&logo=node.js" alt="Node.js 20+" height="22" />
   <img src="https://img.shields.io/badge/Next.js-15-black?style=flat-square&logo=next.js" alt="Next.js 15" height="22" />
   <img src="https://img.shields.io/badge/React-19-149eca?style=flat-square&logo=react" alt="React 19" height="22" />
   <img src="https://img.shields.io/badge/TypeScript-5-3178c6?style=flat-square&logo=typescript" alt="TypeScript 5" height="22" />
   <img src="https://img.shields.io/badge/License-MIT-ff5500?style=flat-square" alt="MIT Lisansı" height="22" />
+</p>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/storytel-client">
+    <img src="https://nodei.co/npm/storytel-client.png?compact=true" alt="npm install storytel-client" />
+  </a>
 </p>
 
 </div>
@@ -28,19 +37,20 @@
 
 ---
 
-## ⚡ npm ile Tek Komutla Başlatın
+## ⚡ npm ile Tek Komutla Başlatın (`npx` / `npm i`)
 
 Kaynak kodu klonlamadan doğrudan terminalinizden çalıştırabilirsiniz (Node.js 20+ gerektirir):
 
 ```bash
-# npx ile anında çalıştırın
+# npx ile kurulum yapmadan anında çalıştırın
 npx storytel-client
 
-# Veya global olarak kurun
-npm install -g storytel-client
+# Veya npm i ile global olarak kurun
+npm i -g storytel-client
 storytel-client --port 3000
 ```
 
+**CLI Parametreleri:** `--port <sayı>` (varsayılan `3000`), `--no-open` (tarayıcıyı otomatik açma), `--help`.  
 Şifreli oturumunuz, profilleriniz, kelime defteriniz ve çevrimdışı MP3'leriniz güvenle `~/.storytel-client` dizininde saklanır. Masaüstü kurulum paketleri (`.exe`, `.deb`, `.AppImage`, `.dmg`) için [Releases](https://github.com/onursercanyilmaz/storytel-client/releases) sayfasını ziyaret edebilirsiniz.
 
 ---
