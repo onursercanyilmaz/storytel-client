@@ -38,6 +38,7 @@ function waitForServer(url, timeoutMs = 25000) {
 
 function findServerScript() {
   const candidates = [
+    path.join(process.resourcesPath || "", "standalone", "server.js"),
     path.join(process.resourcesPath || "", "app.asar.unpacked", ".next", "standalone", "server.js"),
     path.join(process.resourcesPath || "", "app", ".next", "standalone", "server.js"),
     path.join(process.resourcesPath || "", ".next", "standalone", "server.js"),
@@ -115,6 +116,7 @@ function createMainWindow() {
 
 function getAppIconPath() {
   const candidates = [
+    path.join(process.resourcesPath || "", "standalone", "public", "icon.png"),
     path.join(process.resourcesPath || "", "app.asar.unpacked", ".next", "standalone", "public", "icon.png"),
     path.join(__dirname, "..", "public", "icon.png"),
   ];

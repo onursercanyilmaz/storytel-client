@@ -41,17 +41,24 @@ jobs:
       # Windows: build NSIS Setup .exe and Portable .exe
       - name: Build Windows Executables (.exe)
         if: runner.os == 'Windows'
-        run: npx electron-builder --win --publish never
+        shell: bash
+        run: |
+          npx electron-builder --win --publish never
+          test -d "dist-electron/win-unpacked/resources/standalone/node_modules/next"
 
       # Linux: build .deb and .AppImage
       - name: Build Linux Packages (.deb & .AppImage)
         if: runner.os == 'Linux'
-        run: npx electron-builder --linux deb AppImage --publish never
+        run: |
+          npx electron-builder --linux deb AppImage --publish never
+          test -d "dist-electron/linux-unpacked/resources/standalone/node_modules/next"
 
       # macOS: build .dmg and .zip
       - name: Build macOS Packages (.dmg & .zip)
         if: runner.os == 'macOS'
-        run: npx electron-builder --mac dmg zip --publish never
+        run: |
+          npx electron-builder --mac dmg zip --publish never
+          test -d "dist-electron/mac-arm64/Storytel Client.app/Contents/Resources/standalone/node_modules/next"
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
