@@ -1,7 +1,6 @@
 {
   "name": "storytel-client",
   "version": "1.0.0",
-  "private": true,
   "description": "Unofficial, security-first local web & PWA desktop client for Storytel audiobooks with Google SSO, offline MP3 downloads, custom collections, and Storytel-inspired UI.",
   "author": "Onur Sercan Yılmaz <onursercanyilmaz@users.noreply.github.com>",
   "homepage": "https://onursercanyilmaz.github.io/storytel-client/",
@@ -19,6 +18,21 @@
     "pwa",
     "storytel-client"
   ],
+  "bin": {
+    "storytel-client": "./bin/cli.js"
+  },
+  "files": [
+    "bin/**/*",
+    "scripts/copy-standalone-assets.js",
+    "scripts/generate-favicon.js",
+    "scripts/start-server.js",
+    ".next/standalone/**/*",
+    "!.next/standalone/.data/**/*",
+    "public/**/*",
+    "README.md",
+    "README.tr.md",
+    "LICENSE"
+  ],
   "main": "electron/main.js",
   "scripts": {
     "dev": "next dev -H 127.0.0.1 -p 3000",
@@ -27,7 +41,8 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
-    "desktop:build": "next build && electron-builder"
+    "desktop:build": "next build && electron-builder",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "lucide-react": "^0.511.0",

@@ -1,0 +1,16 @@
+# Exclude dev, local data, desktop build outputs, and tests from npm package
+.data/
+.next/standalone/.data/
+.github/
+.next/cache/
+.next/dev/
+dist-electron/
+docs/
+electron/
+src/
+tests/
+*.log
+tsconfig.json
+next-env.d.ts
+start.bat
+start.sh

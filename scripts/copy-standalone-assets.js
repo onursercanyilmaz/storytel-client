@@ -19,6 +19,12 @@ const root = path.join(__dirname, "..");
 const standaloneDir = path.join(root, ".next", "standalone");
 
 if (fs.existsSync(standaloneDir)) {
+  // Never leave local user .data inside standalone bundle
+  const strayData = path.join(standaloneDir, ".data");
+  if (fs.existsSync(strayData)) {
+    fs.rmSync(strayData, { recursive: true, force: true });
+  }
+
   const icoPath = path.join(root, "public", "favicon.ico");
   if (!fs.existsSync(icoPath)) {
     try {
